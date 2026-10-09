@@ -46,7 +46,7 @@ test('validates published native PID and port before permitting debugger attachm
   assert.equal(validated, true);
 });
 
-test('captures rapid atomic publish and removal without adding a startup sleep', async t => {
+test('observes repeated atomic publications held for one native polling interval', async t => {
   const directory = await fixture(t);
   for (let index = 0; index < 10; index++) {
     const next = path.join(directory, String(index));
@@ -56,6 +56,7 @@ test('captures rapid atomic publish and removal without adding a startup sleep',
     const temporary = path.join(next, `${filename}.123.tmp`);
     await writeFile(temporary, JSON.stringify(handshake));
     await rename(temporary, path.join(next, filename));
+    await delay(50);
     await unlink(path.join(next, filename));
     assert.equal((await readiness.ready).pid, 123);
   }

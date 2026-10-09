@@ -47,6 +47,8 @@ jobs:
       - name: Record and validate source build
         env:
           SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          RUNTIME_PLATFORM: ${{ matrix.platform }}
+          RUNTIME_ARCH: ${{ matrix.arch }}
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
@@ -84,8 +86,9 @@ jobs:
             'packages/player/src/views/Artist/__snapshots__/Artist.test.tsx.snap',
           ]);
           assert(comparison.files.every(file => verificationFiles.has(file.filename) && (!file.previous_filename || verificationFiles.has(file.previous_filename))), 'The application source changed after these downloads were built. Build fresh downloads instead.');
-          await mkdir('build/runtime-artifact', { recursive: true });
-          await writeFile('build/runtime-artifact/provenance.json', JSON.stringify({ sourceRunId: source.id, sourceCommit: source.head_sha, scriptCommit: process.env.GITHUB_SHA, sourceConclusion: source.conclusion }, null, 2));
+          const reportDirectory = `build/verify/${process.env.RUNTIME_PLATFORM}-${process.env.RUNTIME_ARCH}`;
+          await mkdir(reportDirectory, { recursive: true });
+          await writeFile(`${reportDirectory}/provenance.json`, JSON.stringify({ sourceRunId: source.id, sourceCommit: source.head_sha, scriptCommit: process.env.GITHUB_SHA, sourceConclusion: source.conclusion }, null, 2));
           NODE
       - uses: actions/download-artifact@v8
         with:
@@ -171,7 +174,7 @@ jobs:
           name: Runtime-artifact-${{ matrix.platform }}-${{ matrix.arch }}
           path: |
             build/verify/${{ matrix.platform }}-${{ matrix.arch }}/runtime.*
-            build/runtime-artifact/provenance.json
+            build/verify/${{ matrix.platform }}-${{ matrix.arch }}/provenance.json
           if-no-files-found: warn
 
   publish:
