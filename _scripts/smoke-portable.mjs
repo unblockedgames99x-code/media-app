@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
-import { access, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, readdir, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { connect, delay, freePort } from './cdp.mjs';
+import { monitorNativeHandshake } from './native-handshake.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { values } = parseArgs({ options: {
@@ -41,6 +42,20 @@ const dataRoot = platform === 'windows' ? process.env.APPDATA
 assert(dataRoot, 'The application data directory is unavailable.');
 const profileDirectory = path.join(path.resolve(dataRoot), identifier);
 assert.equal(path.dirname(profileDirectory), path.resolve(dataRoot));
+const cacheRoot = platform === 'windows' ? process.env.LOCALAPPDATA
+  : platform === 'macos' ? path.join(os.homedir(), 'Library/Caches')
+    : process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), '.cache');
+assert(cacheRoot, 'The application cache directory is unavailable.');
+const profileCache = path.join(path.resolve(cacheRoot), identifier);
+assert.equal(path.dirname(profileCache), path.resolve(cacheRoot));
+const handshakeDirectory = path.join(profileCache, 'video-engine');
+await mkdir(handshakeDirectory, { recursive: true });
+assert.deepEqual(await readdir(handshakeDirectory), [], 'The owned QA profile already contains a native video handshake.');
+const expectedEngine = await realpath(platform === 'windows'
+  ? path.join(path.dirname(executable), 'video-engine/media-video.exe')
+  : platform === 'macos'
+    ? path.join(path.dirname(executable), '../Resources/video-engine/Media Video.app/Contents/MacOS/media-video')
+    : path.join(path.dirname(executable), 'usr/lib/Media/video-engine/media-video'));
 const output = path.join(root, 'build/verify', `${platform}-${values.arch}`);
 await mkdir(output, { recursive: true });
 await mkdir(profileDirectory, { recursive: true });
@@ -70,6 +85,7 @@ let reopened;
 let video;
 let host;
 let nativeHostPid;
+let nativeReadiness;
 let logs = '';
 let launchError;
 
@@ -118,8 +134,41 @@ const stopApplication = () => {
   }
 };
 
+const inspectProcess = pid => {
+  assert(Number.isSafeInteger(pid) && pid > 1, 'The native process ID is invalid.');
+  if (platform === 'windows') {
+    const details = JSON.parse(execFileSync('powershell.exe', ['-NoProfile', '-Command',
+      `Get-CimInstance Win32_Process -Filter 'ProcessId = ${pid}' | Select-Object ParentProcessId,ExecutablePath,CommandLine | ConvertTo-Json -Compress`,
+    ], { encoding: 'utf8', timeout: 10000, windowsHide: true }));
+    return { parentPid: details.ParentProcessId, executable: details.ExecutablePath, args: details.CommandLine };
+  }
+  const details = execFileSync('ps', ['-p', String(pid), '-o', 'ppid=', '-o', 'comm='], { encoding: 'utf8', timeout: 5000 }).trim();
+  const match = /^(\d+)\s+(.+)$/.exec(details);
+  assert(match, 'The native process could not be inspected.');
+  const args = execFileSync('ps', ['-p', String(pid), '-o', 'args='], { encoding: 'utf8', timeout: 5000 }).trim();
+  return { parentPid: Number(match[1]), executable: platform === 'linux' ? `/proc/${pid}/exe` : match[2], args };
+};
+
 try {
+  stage('wait-native-video-readiness');
+  nativeReadiness = monitorNativeHandshake(handshakeDirectory, async handshake => {
+    assert(application && application.exitCode === null, 'The owned application exited before native video initialization.');
+    const engine = inspectProcess(handshake.pid);
+    const enginePath = await realpath(engine.executable);
+    assert.equal(platform === 'windows' ? enginePath.toLowerCase() : enginePath,
+      platform === 'windows' ? expectedEngine.toLowerCase() : expectedEngine,
+      'The native handshake does not belong to the packaged video executable.');
+    assert(engine.args.includes(path.join(profileDirectory, 'video')), 'The native video engine does not belong to the owned QA profile.');
+    let ancestor = engine.parentPid;
+    for (let depth = 0; ancestor !== application.pid && depth < 8; depth++) {
+      ancestor = inspectProcess(ancestor).parentPid;
+    }
+    assert.equal(ancestor, application.pid, 'The native video engine is outside the owned application process tree.');
+    nativeHostPid = engine.parentPid;
+  });
   application = launch();
+  report.nativeReadiness = await nativeReadiness.ready;
+  assert(!logs.includes('CarterMedia video engine failed to start'), 'The first video engine failed native initialization before debugger attachment.');
   stage('connect-video');
   video = await connect(videoPort, item => item.type === 'page' && item.url.startsWith('app:'), 60000, recordProgress);
   stage('initialize-video');
@@ -246,6 +295,7 @@ try {
   host?.close();
   host = undefined;
   stopApplication();
+  await writeFile(path.join(output, 'runtime.log'), logs);
   const deadline = Date.now() + 15000;
   while (await portIsOpen()) {
     assert(Date.now() < deadline, 'The video engine remained alive after its host exited.');
@@ -316,10 +366,12 @@ try {
   await writeFile(path.join(output, 'runtime.log'), logs);
   throw error;
 } finally {
+  nativeReadiness?.close();
   video?.close();
   host?.close();
   stopApplication();
   await writeFile(path.join(output, 'runtime.json'), JSON.stringify(report, null, 2));
   await delay(1500);
   await rm(profileDirectory, { recursive: true, force: true });
+  await rm(profileCache, { recursive: true, force: true });
 }

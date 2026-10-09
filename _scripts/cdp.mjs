@@ -60,6 +60,12 @@ export const connect = async (port, accepts, timeout = 40000, progress = () => {
     const startedAt = Date.now();
     const detail = params.expression ? `${method}: ${params.expression.slice(0, 300)}` : method;
     progress({ event: 'command', command: detail });
+    if (socket.readyState !== WebSocket.OPEN) {
+      const error = new Error(`The application debugging connection closed before QA command: ${detail}`);
+      progress({ event: 'failed', command: detail, error: error.message });
+      reject(error);
+      return;
+    }
     const timer = setTimeout(() => {
       pending.delete(id);
       progress({ event: 'timeout', command: detail });
