@@ -173,17 +173,27 @@ try {
     report.deepLink = await video.evaluate("({path:location.hash,title:document.title})");
   }
   if (process.env.CARTERMEDIA_FAULT_QA) {
+    await delay(2000);
+    const settled = await host.until("window.__TAURI_INTERNALS__.invoke('video_engine_status').then(state=>state.ready&&state.visible?state:null)");
+    if (settled.pid !== enginePid) {
+      video.close();
+      video = await connect(videoPort, item => item.type === 'page' && item.url.startsWith('app:'));
+      enginePid = settled.pid;
+    }
+    const frozenPid = enginePid;
     void video.send('Runtime.evaluate', { expression: 'for (;;) {}' }).catch(() => {});
-    await host.until("qa.role('alert')?.textContent.includes('Videos could not open')", 30000);
-    report.hangRecovery = await host.evaluate("window.__TAURI_INTERNALS__.invoke('video_engine_status')");
-    assert.equal(report.hangRecovery.ready, false);
+    report.hangRecovery = await host.until(`(async()=>{const state=await window.__TAURI_INTERNALS__.invoke('video_engine_status');if(qa.role('alert')?.textContent.includes('Videos could not open'))return{mode:'retry',state};if(state.ready&&state.visible&&state.pid!==${frozenPid})return{mode:'automatic',state};return null})()`, 35000);
     video.close();
-    await clickText(host, 'Try again');
-    await host.until("window.__TAURI_INTERNALS__.invoke('video_engine_status').then(state=>state.ready&&state.visible)");
+    if (report.hangRecovery.mode === 'retry') {
+      await clickText(host, 'Try again');
+      await host.until("window.__TAURI_INTERNALS__.invoke('video_engine_status').then(state=>state.ready&&state.visible)");
+    }
     const replacement = await host.evaluate("window.__TAURI_INTERNALS__.invoke('video_engine_status')");
-    assert.notEqual(replacement.pid, enginePid, 'Retry must replace the frozen engine');
+    assert.notEqual(replacement.pid, frozenPid, 'Recovery must replace the frozen engine');
     enginePid = replacement.pid;
     video = await connect(videoPort, item => item.type === 'page' && item.url.startsWith('app:'));
+    await video.until("Boolean(qa.role('main'))&&[...document.getElementsByTagName('link')].filter(element=>element.rel==='stylesheet').every(element=>element.sheet?.cssRules.length>0)");
+    assert.throws(() => process.kill(frozenPid, 0), 'The frozen video engine remained alive');
     report.recoveredEngine = replacement;
   }
   report.hostExceptions = host.exceptions;

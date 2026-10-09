@@ -11,7 +11,9 @@ const fixture = overrides => {
     'fonts/body.woff2': 'font',
     ...overrides,
   }
-  files['main.js'] ??= `const allowed = new Set(${JSON.stringify(Object.keys(files).map(file => `/${file}`))});`
+  if (files['main.js'] === undefined) {
+    files['main.js'] = `const allowed = new Set(${JSON.stringify(Object.keys(files).map(file => `/${file}`))});`
+  }
   return validateRendererAssets(Object.keys(files), async file => files[file])
 }
 

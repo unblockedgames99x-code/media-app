@@ -30,6 +30,8 @@ Prefer a portable app? Download **windows-x64-portable.zip**, extract the entire
 
 On Ubuntu or Debian, download the **.deb**, open it in your software installer, and choose **Install**. Open **Media** from your application menu.
 
+If your software installer does not open downloaded packages, open Terminal and run `sudo apt install ~/Downloads/Media-*-linux-x64.deb` after saving the download in Downloads.
+
 On Ubuntu 24.04 or newer, use the **.deb**. Its installer adds the application-specific permission needed by the video sandbox while preserving your system's security settings.
 
 For the portable version, download the **.AppImage**, open its file **Properties → Permissions**, allow it to run as a program, then double-click it. If your desktop does not offer that setting:

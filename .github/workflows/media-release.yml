@@ -121,6 +121,7 @@ jobs:
           node-version: '24'
       - uses: actions/download-artifact@v8
         with:
+          pattern: Media-*
           path: build/releases
           merge-multiple: true
       - name: Generate combined checksums
