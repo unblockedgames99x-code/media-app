@@ -68,4 +68,27 @@ describe('First launch personalization', () => {
     await Setup.click('Use the defaults');
     expect(Setup.completed).toBe(true);
   });
+
+  it('preserves an installed font when setup is opened again', async () => {
+    Setup.seedInstalledFont();
+    Setup.mount();
+    await Setup.click('Continue');
+    await Setup.click('Continue');
+    await Setup.click('Continue');
+    expect(Setup.fontStyle).toHaveValue('custom');
+    expect(Setup.installedFont).toHaveValue('Arial');
+    await Setup.click('Back');
+    await Setup.click('Continue');
+    expect(Setup.installedFont).toHaveValue('Arial');
+    await Setup.click('Start listening');
+    expect(Setup.settings.typography.customBodyFont).toBe('Arial');
+  });
+
+  it('supports keyboard navigation and announces each new setup step', async () => {
+    Setup.mount();
+    await Setup.continueWithKeyboard();
+    expect(Setup.styleStep).toHaveAttribute('aria-live', 'polite');
+    await Setup.click('Back');
+    expect(Setup.heading).toBeVisible();
+  });
 });

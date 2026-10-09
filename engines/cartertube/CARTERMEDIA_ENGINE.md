@@ -30,6 +30,10 @@ Windows attaches the frameless video window within the host's Videos section. Li
 
 Supervised mode skips standalone protocol registration and the standalone instance lock. When launched from a Linux AppImage, the host filters its own AppImage loader paths from the child environment while preserving unrelated library paths.
 
+Linux launches Electron with `--disable-setuid-sandbox`, which skips the SUID helper and retains Chromium's namespace and seccomp sandboxes. It requires unprivileged user namespaces. The Debian installer adds an application-specific AppArmor `userns` profile on AppArmor 4 systems, including Ubuntu 24.04; it preserves an administrator-modified policy. This does not change global kernel protections. Prefer the Debian installer on Ubuntu 24.04. AppImage operation depends on the distribution allowing user namespaces for the mounted executable. Never solve a launch failure by adding `--no-sandbox`; see [Electron sandbox guidance](https://www.electronjs.org/docs/latest/tutorial/sandbox) and [Ubuntu's namespace policy](https://documentation.ubuntu.com/release-notes/24.04/#unprivileged-user-namespace-restrictions).
+
+macOS community packages retain the hardened runtime and use ad-hoc signatures with the JIT and library-validation entitlements required by the bundled Electron frameworks. They are not Apple-notarized releases.
+
 ## Authenticated controls
 
 Controls bind only to `127.0.0.1` on an automatically assigned port. Every request requires `Authorization: Bearer <launch secret>`. Browser-origin requests, unknown commands, invalid routes, and oversized bodies are rejected. Ordinary request bodies are limited to 16 KB; appearance uploads are limited to 6 MB. Headers and incoming requests have a three-second timeout. Native control requests have a two-second deadline, and renderer commands have a 750 ms acknowledgment deadline.
@@ -61,6 +65,8 @@ Optional audio processing applies bass, mid, treble, stereo position, and mono d
 Use the root [build guide](../../docs/BUILDING.md) and `pnpm media:build` on the target platform. The entire unpacked Electron runtime must accompany the executable, including `resources/app.asar` and its platform libraries. macOS packaging preserves the nested app's framework symlinks.
 
 Run `pnpm test` here for playback recovery, request deadlines, recommendations, cache policy, authenticated controls, appearance validation, and audio graph checks. Native integration checks live in `packages/player/src-tauri/src/video_engine.rs`. Local Windows checks do not substitute for running and verifying Linux/macOS builds on their respective hosts.
+
+The release workflow also runs `_scripts/smoke-portable.mjs` against the packaged host on each matching architecture, with Xvfb on Linux. It checks isolated-profile launch, authenticated video initialization and navigation, Windows attachment or portable Music/Videos handoff, and child cleanup after the host exits. Linux additionally verifies active renderer seccomp protection and `NoNewPrivs`. This launch check does not claim that an online video provider is reachable or that playback has been tested on every display/audio driver.
 
 Exclude local `node_modules` junctions, `dist`, `build`, and QA profiles from source archives. The packaged application does not depend on local dependency junctions.
 

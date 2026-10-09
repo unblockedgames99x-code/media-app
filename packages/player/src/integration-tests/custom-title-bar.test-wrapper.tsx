@@ -1,10 +1,11 @@
 import { createMemoryHistory, createRouter } from '@tanstack/react-router';
-import { render, RenderResult, screen } from '@testing-library/react';
+import { act, render, RenderResult, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import App from '../App';
 import { routeTree } from '../routeTree.gen';
 import { registerBuiltInCoreSettings } from '../services/coreSettings';
+import { usePersonalizationStore } from '../stores/personalizationStore';
 import { initializeSettingsStore } from '../stores/settingsStore';
 
 const user = userEvent.setup();
@@ -13,12 +14,21 @@ export const CustomTitleBarWrapper = {
   async mount(): Promise<RenderResult> {
     await initializeSettingsStore();
     registerBuiltInCoreSettings();
+    usePersonalizationStore.getState().reset();
+    usePersonalizationStore.setState({ hydrated: true, setupCompleted: true });
 
     const history = createMemoryHistory({ initialEntries: ['/dashboard'] });
     const router = createRouter({ routeTree, history });
     const result = render(<App routerProp={router} />);
     await screen.findByTestId('player-workspace-main');
     return result;
+  },
+  chooseName(displayName: string) {
+    act(() => {
+      usePersonalizationStore
+        .getState()
+        .updateSection('identity', { displayName });
+    });
   },
 
   async openSettings() {

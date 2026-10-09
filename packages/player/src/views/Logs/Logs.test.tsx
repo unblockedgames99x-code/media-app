@@ -58,7 +58,7 @@ describe('Logs view', () => {
     expect(dialog.save).toHaveBeenCalled();
     expect(fs.writeTextFile).toHaveBeenCalledWith(
       '/path/to/logs.txt',
-      expect.stringContaining('Nuclear'),
+      expect.stringContaining('# Media - Log Export'),
     );
   });
 

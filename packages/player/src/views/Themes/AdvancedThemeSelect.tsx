@@ -3,6 +3,7 @@ import { SectionShell, Select } from '@nuclearplayer/ui';
 
 import { useAdvancedThemeOptions } from '../../hooks/useAdvancedThemeOptions';
 import { loadAndApplyAdvancedThemeFromFile } from '../../services/advancedThemeService';
+import { usePersonalizationStore } from '../../stores/personalizationStore';
 import { useThemeStore } from '../../stores/themeStore';
 
 export const AdvancedThemeSelect = () => {
@@ -19,7 +20,12 @@ export const AdvancedThemeSelect = () => {
           placeholder={t('selectPlaceholder')}
           options={options}
           value={value}
-          onValueChange={loadAndApplyAdvancedThemeFromFile}
+          onValueChange={async (path) => {
+            await loadAndApplyAdvancedThemeFromFile(path);
+            usePersonalizationStore
+              .getState()
+              .updateSection('palette', { enabled: false });
+          }}
         />
       </div>
     </SectionShell>

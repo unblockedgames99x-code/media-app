@@ -30,6 +30,8 @@ Prefer a portable app? Download **windows-x64-portable.zip**, extract the entire
 
 On Ubuntu or Debian, download the **.deb**, open it in your software installer, and choose **Install**. Open **Media** from your application menu.
 
+On Ubuntu 24.04 or newer, use the **.deb**. Its installer adds the application-specific permission needed by the video sandbox while preserving your system's security settings.
+
 For the portable version, download the **.AppImage**, open its file **Properties → Permissions**, allow it to run as a program, then double-click it. If your desktop does not offer that setting:
 
 ```sh
@@ -46,7 +48,7 @@ The AppImage needs a desktop with WebKitGTK 4.1, GTK 3, and the usual Electron l
 
 These community downloads are ad-hoc signed and are not Apple notarized. If macOS blocks the app because it cannot verify the developer, review [Apple's instructions for opening an app you trust](https://support.apple.com/en-us/102445). Windows downloads are currently unsigned as well.
 
-Only successful builds appear in Releases. The repository includes builds for all four targets; compilation and packaging checks do not replace playback testing on each operating system.
+Only successful builds appear in Releases. All four targets must pass packaging and packaged-app startup checks before publication. These checks do not cover every graphics driver, plugin, or desktop environment.
 
 ## Make it yours
 

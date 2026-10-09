@@ -491,7 +491,7 @@ describe('Stream verification', () => {
 
       expect(
         await QueueWrapper.toast.find(
-          "Stream was verified locally, but Nuclear couldn't reach the verification service.",
+          "Stream was verified locally, but the player couldn't reach the verification service.",
         ),
       ).toBeInTheDocument();
       expect(

@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core';
 import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
 export const parseVideoDeepLink = (url: string): string | null => {
@@ -36,7 +37,14 @@ export const subscribeToVideoDeepLinks = (
       unlisten = stopListening;
       const urls = await getCurrent();
       if (!receivedNewLink) {
-        openLinks(urls);
+        if (urls?.some((url) => parseVideoDeepLink(url) !== null)) {
+          openLinks(urls);
+        } else {
+          const startupLink = await invoke<string | null>('startup_video_link');
+          if (!receivedNewLink) {
+            openLinks(startupLink ? [startupLink] : null);
+          }
+        }
       }
     })
     .catch(() => {});

@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core';
 import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
 import {
@@ -10,8 +11,13 @@ vi.mock('@tauri-apps/plugin-deep-link', () => ({
   onOpenUrl: vi.fn(),
 }));
 
+vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
+
 describe('CarterMedia video links', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(invoke).mockResolvedValue(null);
+  });
 
   it('accepts CarterMedia watch links with a complete video identifier', () => {
     expect(parseVideoDeepLink('cartermedia://watch/dQw4w9WgXcQ')).toBe(
@@ -65,6 +71,38 @@ describe('CarterMedia video links', () => {
     expect(unlisten).toHaveBeenCalledOnce();
     vi.mocked(onOpenUrl).mock.calls[0][0](['cartermedia://watch/aB_cD-01234']);
     expect(openVideo).toHaveBeenCalledOnce();
+  });
+
+  it('opens a startup CLI video when the operating system has no initial URL', async () => {
+    vi.mocked(onOpenUrl).mockResolvedValue(() => {});
+    vi.mocked(getCurrent).mockResolvedValue(null);
+    vi.mocked(invoke).mockResolvedValue('cartermedia://watch/dQw4w9WgXcQ');
+    const openVideo = vi.fn();
+    const dispose = subscribeToVideoDeepLinks(openVideo);
+    await vi.waitFor(() =>
+      expect(openVideo).toHaveBeenCalledWith('/watch/dQw4w9WgXcQ'),
+    );
+    dispose();
+  });
+
+  it('keeps a new operating-system link while a CLI fallback is still loading', async () => {
+    vi.mocked(onOpenUrl).mockResolvedValue(() => {});
+    vi.mocked(getCurrent).mockResolvedValue(null);
+    let finishStartup!: (url: string) => void;
+    vi.mocked(invoke).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finishStartup = resolve;
+        }),
+    );
+    const openVideo = vi.fn();
+    const dispose = subscribeToVideoDeepLinks(openVideo);
+    await vi.waitFor(() => expect(invoke).toHaveBeenCalled());
+    vi.mocked(onOpenUrl).mock.calls[0][0](['cartermedia://watch/aB_cD-01234']);
+    finishStartup('cartermedia://watch/dQw4w9WgXcQ');
+    await Promise.resolve();
+    expect(openVideo).toHaveBeenCalledExactlyOnceWith('/watch/aB_cD-01234');
+    dispose();
   });
 
   it('keeps a newly received video instead of replaying an older startup link', async () => {

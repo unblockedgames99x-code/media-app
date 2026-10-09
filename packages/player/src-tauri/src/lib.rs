@@ -46,6 +46,7 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         commands::copy_dir_recursive,
         commands::extract_zip,
         commands::download_file,
+        deep_links::startup_video_link,
         video_engine::video_engine_attach,
         video_engine::video_engine_hide,
         video_engine::video_engine_theme,
@@ -116,10 +117,18 @@ pub fn run() {
     #[cfg(desktop)]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, arguments, _| {
+            let video_link = deep_links::cli_video_link(arguments.clone());
             if let Some(arguments) = deep_links::profile_link_arguments(arguments) {
                 app.deep_link().handle_cli_arguments(arguments.into_iter());
             }
-            video_engine::restore_main_workspace(app);
+            #[cfg(target_os = "macos")]
+            if let Some(link) = &video_link {
+                use tauri::Emitter;
+                let _ = app.emit("deep-link://new-url", vec![link]);
+            }
+            if video_link.is_none() {
+                video_engine::restore_main_workspace(app);
+            }
         }));
     }
 

@@ -284,7 +284,13 @@ fn engine_candidates(resource: PathBuf, workspace: PathBuf) -> Vec<PathBuf> {
         [
             resources.join("Media Video.app/Contents/MacOS/media-video"),
             resources.join("Media Video.app/Contents/MacOS/Media Video"),
+            resources.join("media-video.app/Contents/MacOS/media-video"),
             resources.join("CarterMedia Video.app/Contents/MacOS/CarterMedia Video"),
+            workspace.join("mac/media-video.app/Contents/MacOS/media-video"),
+            workspace.join("mac-arm64/media-video.app/Contents/MacOS/media-video"),
+            workspace.join("portable/macos-x64/mac/media-video.app/Contents/MacOS/media-video"),
+            workspace
+                .join("portable/macos-arm64/mac-arm64/media-video.app/Contents/MacOS/media-video"),
             workspace.join("mac/Media Video.app/Contents/MacOS/media-video"),
             workspace.join("mac-arm64/Media Video.app/Contents/MacOS/media-video"),
         ]
@@ -332,6 +338,8 @@ fn start_engine(
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null());
+    #[cfg(target_os = "linux")]
+    command.arg("--disable-setuid-sandbox");
     #[cfg(target_os = "linux")]
     if let Some(directory) = std::env::var_os("APPDIR").map(PathBuf::from) {
         if std::env::current_exe().is_ok_and(|executable| executable.starts_with(&directory)) {

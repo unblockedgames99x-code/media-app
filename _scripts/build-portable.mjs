@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { writeChecksums } from './checksums.mjs';
+import { runPnpm } from './run-pnpm.mjs';
+import { verifyEngineArchive, verifyEngineSource } from './verify-engine-assets.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const engineRoot = path.join(root, 'engines', 'cartertube');
@@ -51,7 +53,7 @@ const unpackedEngine = path.join(engineOutput, unpackedFolder);
 const engineExecutable = path.join(unpackedEngine, ...{
   windows: ['media-video.exe'],
   linux: ['media-video'],
-  macos: ['Media Video.app', 'Contents', 'MacOS', 'media-video'],
+  macos: ['media-video.app', 'Contents', 'MacOS', 'media-video'],
 }[platform]);
 const releaseDirectory = path.join(root, 'build', 'releases');
 const bundleTargets = { windows: 'nsis', linux: 'appimage,deb', macos: 'app,dmg' }[platform];
@@ -71,6 +73,11 @@ const overlay = {
     linux: {
       appimage: { bundleMediaFramework: true },
       deb: {
+        files: {
+          '/usr/share/Media/security/media-video.apparmor': path.join(root, '_scripts', 'linux', 'media-video.apparmor').replaceAll('\\', '/'),
+        },
+        postInstallScript: path.join(root, '_scripts', 'linux', 'media-post-install.sh').replaceAll('\\', '/'),
+        preRemoveScript: path.join(root, '_scripts', 'linux', 'media-pre-remove.sh').replaceAll('\\', '/'),
         depends: [
           'libwebkit2gtk-4.1-0', 'libgtk-3-0', 'libnss3', 'libxss1',
           'libxtst6', 'libatspi2.0-0', 'libsecret-1-0', 'libnotify4',
@@ -86,7 +93,7 @@ if (platform === 'macos') {
   overlay.bundle.macOS = {
     minimumSystemVersion: '13.0',
     files: {
-      'Resources/video-engine/Media Video.app': path.join(unpackedEngine, 'Media Video.app').replaceAll('\\', '/'),
+      'Resources/video-engine/Media Video.app': path.join(unpackedEngine, 'media-video.app').replaceAll('\\', '/'),
     },
   };
 }
@@ -107,24 +114,9 @@ const run = (executable, args, cwd, environment = {}) => {
   if (result.status !== 0) throw new Error(`${path.basename(executable)} exited with status ${result.status}.`);
 };
 
-const pnpm = (args, cwd) => {
-  if (process.env.npm_execpath?.match(/pnpm\.(?:c?js|mjs)$/)) {
-    run(process.execPath, [process.env.npm_execpath, ...args], cwd);
-    return;
-  }
-  if (process.platform === 'win32') {
-    const quoted = args.map((argument) => {
-      if (/["%\r\n!&|<>^]/.test(argument)) throw new Error('Invalid build argument.');
-      return `"${argument}"`;
-    });
-    run(process.env.ComSpec ?? 'cmd.exe', ['/d', '/s', '/c', `pnpm ${quoted.join(' ')}`], cwd);
-    return;
-  }
-  run('pnpm', args, cwd);
-};
-
 if (!values['skip-engine']) {
-  pnpm(['run', 'pack'], engineRoot);
+  runPnpm(['run', 'pack'], engineRoot);
+  await verifyEngineSource();
   run(process.execPath, [
     path.join(engineRoot, 'node_modules', 'electron-builder', 'out', 'cli', 'cli.js'),
     '--config', '_scripts/portable.config.mjs',
@@ -132,12 +124,16 @@ if (!values['skip-engine']) {
     `--${values.arch}`, '--dir', '--publish', 'never',
   ], engineRoot, { MEDIA_BUILD_PLATFORM: platform, MEDIA_BUILD_ARCH: values.arch, CSC_IDENTITY_AUTO_DISCOVERY: 'false' });
 }
+await verifyEngineSource();
+await verifyEngineArchive(path.join(unpackedEngine, ...(platform === 'macos'
+  ? ['media-video.app', 'Contents', 'Resources', 'app.asar']
+  : ['resources', 'app.asar'])), true);
 await stat(engineExecutable);
 if (platform !== 'windows' && ((await stat(engineExecutable)).mode & 0o111) === 0) {
   throw new Error('The video engine is missing its executable file permissions.');
 }
 
-pnpm(['exec', 'turbo', 'run', 'build:frontend', '--filter=@nuclearplayer/player'], root);
+runPnpm(['exec', 'turbo', 'run', 'build:frontend', '--filter=@nuclearplayer/player'], root);
 const overlayPath = path.join(tauriRoot, 'tauri.media.generated.json');
 await writeFile(overlayPath, `${JSON.stringify(overlay, null, 2)}\n`);
 const tauriArguments = [

@@ -14,6 +14,7 @@ const mockWindow = vi.hoisted(() => ({
   isMaximized: vi.fn().mockResolvedValue(false),
   show: vi.fn().mockResolvedValue(undefined),
   setFocus: vi.fn(),
+  setTitle: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@tauri-apps/api/window', () => ({
@@ -42,10 +43,11 @@ describe('Custom title bar', () => {
   it('title bar appears when setting is enabled', async () => {
     await CustomTitleBarWrapper.mount();
     await CustomTitleBarWrapper.openSettings();
+    CustomTitleBarWrapper.chooseName('My listening room');
     await CustomTitleBarWrapper.customTitleBarToggle.click();
 
     expect(CustomTitleBarWrapper.titleBar).toBeInTheDocument();
-    expect(screen.getByText('Nuclear Music Player')).toBeInTheDocument();
+    expect(screen.getByText('My listening room')).toBeInTheDocument();
   });
 
   it('enabling custom title bar hides window decorations', async () => {

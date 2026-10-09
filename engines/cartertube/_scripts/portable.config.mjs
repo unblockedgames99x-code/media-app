@@ -16,6 +16,9 @@ export default {
   mac: {
     ...originalConfiguration.mac,
     identity: '-',
+    hardenedRuntime: true,
+    entitlements: '_scripts/entitlements.portable.mac.plist',
+    entitlementsInherit: '_scripts/entitlements.portable.mac.plist',
     extendInfo: {
       ...originalConfiguration.mac.extendInfo,
       CFBundleURLTypes: [],

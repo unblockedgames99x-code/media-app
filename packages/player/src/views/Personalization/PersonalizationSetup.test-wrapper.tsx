@@ -49,6 +49,34 @@ export const SetupWrapper = {
   get settings() {
     return usePersonalizationStore.getState().settings;
   },
+  seedInstalledFont() {
+    usePersonalizationStore.getState().updateSection('typography', {
+      bodyFont: 'custom',
+      headingFont: 'custom',
+      customBodyFont: 'Arial',
+      customHeadingFont: 'Arial',
+    });
+  },
+  get fontStyle() {
+    return screen.getByRole('combobox', { name: 'Font style' });
+  },
+  get installedFont() {
+    return screen.getByRole('textbox', { name: 'Installed body font' });
+  },
+  get styleStep() {
+    return screen.getByRole('heading', { name: 'Choose a style' });
+  },
+  async continueWithKeyboard() {
+    await userEvent.tab();
+    expect(
+      screen.getByRole('button', { name: 'Use the defaults', exact: true }),
+    ).toHaveFocus();
+    await userEvent.tab();
+    expect(
+      screen.getByRole('button', { name: 'Continue', exact: true }),
+    ).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+  },
   get completed() {
     return usePersonalizationStore.getState().setupCompleted;
   },

@@ -25,6 +25,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec turbo run build:frontend --filter=@nuclearplayer/player
-      - run: pnpm --filter @nuclearplayer/player test -- src/views/Videos/Videos.test.tsx src/components/ConnectedVideoNavigation.test.tsx src/views/Personalization/Personalization.test.tsx src/views/Personalization/PersonalizationSetup.test.tsx
+      - name: Check setup, personalization, themes, and video integration
+        run: pnpm --filter @nuclearplayer/player exec vitest --run src/App.test.tsx src/views/Videos/Videos.test.tsx src/components/ConnectedVideoNavigation.test.tsx src/views/Personalization/Personalization.test.tsx src/views/Personalization/PersonalizationSetup.test.tsx src/views/Themes/Themes.test.tsx src/components/ConnectedThemeController.test.tsx
       - run: node _scripts/build-portable.mjs --plan
       - run: node --check _scripts/build-portable.mjs

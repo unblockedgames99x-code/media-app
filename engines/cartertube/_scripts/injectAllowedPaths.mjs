@@ -39,6 +39,10 @@ try {
 
   let contents = readFileSync(fileHandle, 'utf-8')
 
+  if (!contents.includes('__FREETUBE_ALLOWED_PATHS__')) {
+    throw new Error('The renderer asset allowlist was already injected. Rebuild main with the complete pack command before injecting updated renderer assets.')
+  }
+
   contents = contents.replace('__FREETUBE_ALLOWED_PATHS__', JSON.stringify(paths))
 
   ftruncateSync(fileHandle)

@@ -38,11 +38,11 @@ The same commands work in Windows PowerShell, macOS Terminal, and Linux shells a
 
 All packages include the complete Electron video runtime, the Tauri music application, licenses, and this repository's README. Keep the whole portable folder together. `SHA256SUMS.txt` is generated from the finished downloads.
 
-`pnpm media:build --plan` prints the selected platform, architecture, resource locations, and target without building. `--skip-engine` reuses an already packaged video runtime. `--no-bundle` creates the executable without an installer. Build on the matching Windows or Linux architecture; macOS also accepts an explicitly installed Rust target with `--arch x64 --target x86_64-apple-darwin` or `--arch arm64 --target aarch64-apple-darwin`.
+`pnpm media:build --plan` prints the selected platform, architecture, resource locations, and target without building. `--skip-engine` reuses an already packaged video runtime only after validating its stylesheet, fonts, allowed assets, and source match. Use the complete engine `pack` command after source changes; rebuilding only the renderer leaves its main-process allowlist outdated. `--no-bundle` creates the executable without an installer. Build on the matching Windows or Linux architecture; macOS also accepts an explicitly installed Rust target with `--arch x64 --target x86_64-apple-darwin` or `--arch arm64 --target aarch64-apple-darwin`.
 
 ## GitHub builds
 
-The **Build desktop downloads** workflow can be run from the repository's Actions tab. It builds Windows x64, Linux x64, macOS Apple Silicon, and macOS Intel on their corresponding runners. A successful manual run provides downloadable artifacts on that run.
+The **Build desktop downloads** workflow can be run from the repository's Actions tab. It builds Windows x64, Linux x64, macOS Apple Silicon, and macOS Intel on their corresponding runners. A successful manual run provides downloadable artifacts on that run. Select **Publish downloads after every platform passes** to also create a public release for that exact commit using the configured app version. Leave it off for a build-only run.
 
 To prepare a future version, run `pnpm media:prepare X.Y.Z`, review the version changes and changelog, commit the intended source, and push the matching `vX.Y.Z` tag. The preparation command updates version metadata without creating commits or tags. The workflow checks that the tag matches the app version and publishes downloads only after all four platform builds and packaging checks succeed. It uses GitHub's built-in repository token; no personal access token or upstream distribution credentials are required.
 
@@ -54,7 +54,9 @@ The inherited Nuclear deployment, package registry, and distribution workflows l
 
 Windows supports native video embedding. macOS and Linux switch between the music window and the video window while keeping one visible; the video window has a Music button to return. Both run the complete video engine rather than a website wrapper.
 
-The workflow checks video contracts, native integration contracts, resource paths, executable permissions, application archives, and release file checksums. These are build checks. They do not certify every plugin, graphics driver, or desktop environment. Runtime verification on macOS and Linux must be recorded separately from compilation.
+The workflow checks video contracts, native integration contracts, resource paths, executable permissions, application archives, stylesheet and font assets, and release file checksums. It also opens each packaged application, checks the video workspace and shutdown, and validates the Linux renderer sandbox. Runtime reports are saved with each workflow run. These checks do not certify every plugin, graphics driver, or desktop environment.
+
+On systems using AppArmor 4, the Debian installer adds an application-specific policy allowing the video renderer to create its sandbox namespaces. It preserves an administrator-modified policy and removes its own policy when uninstalled. On Ubuntu 24.04 and later, use the Debian package rather than the AppImage so this policy can be installed automatically. No global sandbox setting is changed.
 
 The included macOS packages use ad-hoc signatures and are not notarized. Public distribution with a verified publisher requires your own Apple Developer identity and notarization configuration; these credentials are intentionally absent. Windows packages are currently unsigned. See [Apple's app-opening guidance](https://support.apple.com/en-us/102445) for the operating system's publisher checks.
 

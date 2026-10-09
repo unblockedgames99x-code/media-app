@@ -40,6 +40,7 @@ describe('Themes view', async () => {
     vi.restoreAllMocks();
     vi.spyOn(themes, 'setThemeId');
     vi.spyOn(themes, 'applyAdvancedTheme');
+    ThemesWrapper.resetPersonalization();
   });
   afterEach(() => {
     stopAdvancedThemeWatcher();
@@ -122,6 +123,7 @@ describe('Themes view', async () => {
       await startAdvancedThemeWatcher();
       await ThemesWrapper.mount();
       await ThemesWrapper.advancedThemeSelect.select('My Theme');
+      await ThemesWrapper.settledPersonalization();
     };
 
     it('reloads the active advanced theme once when its file changes several times in quick succession', async () => {
@@ -223,6 +225,21 @@ describe('Themes view', async () => {
   });
 
   describe('Theme selection', () => {
+    it('lets a basic theme take over while keeping the custom palette available for reuse', async () => {
+      await ThemesWrapper.mount();
+      const savedAccent = ThemesWrapper.customPalette.accent;
+      expect(ThemesWrapper.customPalette.enabled).toBe(true);
+      await ThemesWrapper.selectBasicTheme('Ember');
+      expect(ThemesWrapper.customPalette.enabled).toBe(false);
+      expect(ThemesWrapper.customPalette.accent).toBe(savedAccent);
+    });
+
+    it('lets an advanced theme take over the custom palette', async () => {
+      PluginFsMock.setReadTextFile(JSON.stringify(SAKURA_THEME_FILE));
+      await ThemesWrapper.mount({ advancedThemes });
+      await ThemesWrapper.advancedThemeSelect.select('My Theme');
+      expect(ThemesWrapper.customPalette.enabled).toBe(false);
+    });
     it('selects a basic theme', async () => {
       await ThemesWrapper.mount();
       await ThemesWrapper.selectBasicTheme('Ember');
@@ -570,6 +587,7 @@ describe('Themes view', async () => {
       await ThemesWrapper.goToMyThemesTab();
       expect(ThemesWrapper.activeBasicTheme).toBeNull();
       expect(ThemesWrapper.marketplaceThemeSelect!.selected()).toBe('Sakura');
+      expect(ThemesWrapper.customPalette.enabled).toBe(false);
     });
 
     it('shows the active marketplace theme as active', async () => {
@@ -653,6 +671,7 @@ describe('Themes view', async () => {
         activeTheme: { type: 'marketplace', id: 'sakura' },
       });
       await applyThemeFromSettingsIfAny();
+      expect(ThemesWrapper.customPalette.enabled).toBe(true);
 
       const styleElement = document.getElementById('advanced-theme');
       expect(styleElement).toBeInTheDocument();
@@ -677,6 +696,7 @@ describe('Themes view', async () => {
         activeTheme: { type: 'advanced', path: '/themes/custom.json' },
       });
       await applyThemeFromSettingsIfAny();
+      expect(ThemesWrapper.customPalette.enabled).toBe(true);
 
       const styleElement = document.getElementById('advanced-theme');
       expect(styleElement).toBeInTheDocument();

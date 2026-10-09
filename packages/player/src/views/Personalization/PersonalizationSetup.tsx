@@ -8,7 +8,12 @@ import {
   usePersonalizationStore,
 } from '../../stores/personalizationStore';
 import { IdentityPreferences, PersonalizationPresets } from './Personalization';
-import { actionClass, SelectField, ToggleField } from './PersonalizationFields';
+import {
+  actionClass,
+  SelectField,
+  TextField,
+  ToggleField,
+} from './PersonalizationFields';
 import { PersonalizationPreview } from './PersonalizationPreview';
 
 const SetupWizard: FC = () => {
@@ -69,7 +74,11 @@ const SetupWizard: FC = () => {
       </ol>
       <div className="grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_280px]">
         <div className="min-w-0 space-y-4">
-          <h2 className="text-xl font-bold">
+          <h2
+            className="text-xl font-bold"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {t(`setup.steps.${steps[step]}`)}
           </h2>
           {step === 0 && (
@@ -100,10 +109,12 @@ const SetupWizard: FC = () => {
               <SelectField
                 label={t('setup.font')}
                 value={settings.typography.bodyFont}
-                options={['system', 'sans', 'serif', 'mono'].map((value) => ({
-                  value,
-                  label: t(`typography.fonts.${value}`),
-                }))}
+                options={['system', 'sans', 'serif', 'mono', 'custom'].map(
+                  (value) => ({
+                    value,
+                    label: t(`typography.fonts.${value}`),
+                  }),
+                )}
                 onChange={(bodyFont) =>
                   updateSection('typography', {
                     bodyFont:
@@ -113,6 +124,19 @@ const SetupWizard: FC = () => {
                   })
                 }
               />
+              {settings.typography.bodyFont === 'custom' && (
+                <TextField
+                  label={t('typography.customBody')}
+                  value={settings.typography.customBodyFont}
+                  maxLength={120}
+                  onChange={(customBodyFont) =>
+                    updateSection('typography', {
+                      customBodyFont,
+                      customHeadingFont: customBodyFont,
+                    })
+                  }
+                />
+              )}
               <SelectField
                 label={t('setup.density')}
                 value={settings.layout.density}

@@ -3,6 +3,7 @@ import { SectionShell, Select } from '@nuclearplayer/ui';
 
 import { useMarketplaceThemeOptions } from '../../hooks/useMarketplaceThemeOptions';
 import { loadAndApplyMarketplaceTheme } from '../../services/advancedThemeService';
+import { usePersonalizationStore } from '../../stores/personalizationStore';
 import { useThemeStore } from '../../stores/themeStore';
 
 export const MarketplaceThemeSelect = () => {
@@ -23,7 +24,12 @@ export const MarketplaceThemeSelect = () => {
           placeholder={t('selectPlaceholder')}
           options={options}
           value={value}
-          onValueChange={loadAndApplyMarketplaceTheme}
+          onValueChange={async (id) => {
+            await loadAndApplyMarketplaceTheme(id);
+            usePersonalizationStore
+              .getState()
+              .updateSection('palette', { enabled: false });
+          }}
         />
       </div>
     </SectionShell>

@@ -7,6 +7,7 @@ import { useFilteredMarketplaceThemes } from '../../hooks/useFilteredMarketplace
 import { useInstallTheme } from '../../hooks/useInstallTheme';
 import { useUninstallTheme } from '../../hooks/useUninstallTheme';
 import { loadAndApplyMarketplaceTheme } from '../../services/advancedThemeService';
+import { usePersonalizationStore } from '../../stores/personalizationStore';
 import { useThemeStore } from '../../stores/themeStore';
 import { ThemeStoreSkeletonList } from './ThemeStoreSkeletonList';
 
@@ -45,7 +46,12 @@ export const ThemeStore: FC = () => {
           key={theme.id}
           {...theme}
           onInstall={() => installTheme({ theme })}
-          onApply={() => loadAndApplyMarketplaceTheme(theme.id)}
+          onApply={async () => {
+            await loadAndApplyMarketplaceTheme(theme.id);
+            usePersonalizationStore
+              .getState()
+              .updateSection('palette', { enabled: false });
+          }}
           onUninstall={() =>
             uninstallTheme({
               id: theme.id,

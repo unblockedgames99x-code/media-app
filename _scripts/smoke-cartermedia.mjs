@@ -95,6 +95,8 @@ try {
   assert(report.embedding.parentHwnd && report.embedding.parentHwnd !== '0');
   video = await connect(videoPort, item => item.type === 'page' && item.url.startsWith('app:'));
   await video.until("Boolean(qa.role('main'))");
+  report.videoStyles = await video.evaluate("[...document.getElementsByTagName('link')].filter(element=>element.rel==='stylesheet').map(element=>({href:element.href,loaded:Boolean(element.sheet)}))");
+  assert(report.videoStyles.length > 0 && report.videoStyles.every(stylesheet => stylesheet.loaded), 'Packaged video styles did not load');
   await delay(6000);
   report.videoHome = await video.evaluate("({title:document.title,cards:qa.byClass('ft-list-video').length,font:getComputedStyle(qa.byClass('app')[0]).fontFamily,sideNavVisible:qa.byClass('sideNav')[0]?getComputedStyle(qa.byClass('sideNav')[0]).display:null,primary:getComputedStyle(document.documentElement).getPropertyValue('--primary'),width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth})");
   assert(!report.videoHome.title.includes('Carter'));
@@ -189,6 +191,32 @@ try {
   report.hostErrors = host.errors;
   report.videoErrors = video.errors;
   assert.equal(host.exceptions.length + video.exceptions.length, 0, 'Uncaught application error');
+  video.close();
+  await host.send('Runtime.evaluate', { expression: "void window.__TAURI_INTERNALS__.invoke('plugin:window|close',{label:'main'})" }).catch(() => {});
+  host.close();
+  const closeDeadline = Date.now() + 15000;
+  while (processHandle.exitCode === null && Date.now() < closeDeadline) await delay(100);
+  assert.notEqual(processHandle.exitCode, null, 'The app did not close cleanly');
+  await delay(1500);
+  try { process.kill(enginePid, 0); report.engineExitedBeforeReopen = false; } catch { report.engineExitedBeforeReopen = true; }
+  assert.equal(report.engineExitedBeforeReopen, true, 'Video engine remained after closing the app');
+  enginePid = undefined;
+  processHandle = spawn(executable, ['--profile', profile], {
+    env: { ...process.env, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${hostPort} --remote-debugging-address=127.0.0.1`, CARTERMEDIA_VIDEO_DEBUG_PORT: String(videoPort) },
+    windowsHide: true,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  processHandle.stderr.on('data', data => { logs += data.toString(); });
+  processHandle.stdout.on('data', data => { logs += data.toString(); });
+  host = await connect(hostPort, item => item.type === 'page' && /tauri\.localhost|tauri:/.test(item.url));
+  await host.until("document.title==='QA Studio'&&Boolean(qa.testId('search-box'))");
+  await delay(1000);
+  report.restoredPersonalization = await host.evaluate("({title:document.title,font:getComputedStyle(document.body).fontFamily,accent:getComputedStyle(document.documentElement).getPropertyValue('--primary'),setupVisible:qa.role('dialog')?.textContent.includes('Your media, your way')||false})");
+  assert.equal(report.restoredPersonalization.setupVisible, false);
+  assert.equal(report.restoredPersonalization.title, 'QA Studio');
+  assert(report.restoredPersonalization.font.includes('Space Mono'));
+  assert.equal(report.restoredPersonalization.accent.trim(), '#67d9d0');
+  await screenshot(host, 'media-personalized-reopened.png');
   report.passed = true;
   report.logs = logs.slice(-1500);
 } catch (error) {

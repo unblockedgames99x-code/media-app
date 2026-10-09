@@ -1,0 +1,7 @@
+abi <abi/4.0>,
+include <tunables/global>
+
+/usr/lib/Media/video-engine/media-video flags=(unconfined) {
+  userns,
+  include if exists <local/media-video>
+}

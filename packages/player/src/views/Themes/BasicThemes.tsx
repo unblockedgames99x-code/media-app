@@ -4,6 +4,7 @@ import { useTranslation } from '@nuclearplayer/i18n';
 import { listBasicThemes } from '@nuclearplayer/themes';
 import { Button, SectionShell } from '@nuclearplayer/ui';
 
+import { usePersonalizationStore } from '../../stores/personalizationStore';
 import { useThemeStore } from '../../stores/themeStore';
 
 export const BasicThemes = () => {
@@ -23,7 +24,12 @@ export const BasicThemes = () => {
               variant={isActive ? 'default' : 'tertiary'}
               size="flexible"
               className="flex flex-col justify-between gap-2 px-4 py-2"
-              onClick={() => selectBasicTheme(theme.id)}
+              onClick={async () => {
+                await selectBasicTheme(theme.id);
+                usePersonalizationStore
+                  .getState()
+                  .updateSection('palette', { enabled: false });
+              }}
             >
               <span className="text-left text-base font-bold">
                 {theme.name}

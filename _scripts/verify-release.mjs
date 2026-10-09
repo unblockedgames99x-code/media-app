@@ -4,6 +4,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
+import { verifyEngineArchive } from './verify-engine-assets.mjs';
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { values } = parseArgs({ options: { arch: { type: 'string', default: process.arch }, target: { type: 'string' } } });
 const platform = { win32: 'windows', linux: 'linux', darwin: 'macos' }[process.platform];
@@ -67,6 +69,7 @@ const asarPath = platform === 'macos'
   ? path.join(resourceDirectory, 'Media Video.app', 'Contents', 'Resources', 'app.asar')
   : path.join(resourceDirectory, 'resources', 'app.asar');
 await access(asarPath);
+await verifyEngineArchive(asarPath);
 if (platform === 'macos') {
   const framework = path.join(resourceDirectory, 'Media Video.app', 'Contents', 'Frameworks', 'Electron Framework.framework');
   if (!(await lstat(path.join(framework, 'Versions', 'Current'))).isSymbolicLink()) {
