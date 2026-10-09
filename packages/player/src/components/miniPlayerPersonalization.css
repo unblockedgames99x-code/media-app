@@ -44,6 +44,16 @@
   background-color: color-mix(in srgb, var(--background) 80%, transparent) !important;
 }
 
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-bottom-progress-container::before {
+  position: absolute;
+  z-index: -1;
+  inset: -6px;
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--card) 90%, transparent);
+  content: '';
+  pointer-events: none;
+}
+
 #nuke-mp-panel[data-media-theme-sync='true'] #nuke-mp-settings-view,
 #nuke-mp-panel[data-media-theme-sync='true'] #nuke-mp-queue-dropdown {
   border-color: var(--border) !important;
