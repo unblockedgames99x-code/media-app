@@ -10,7 +10,7 @@ export const freePort = async () => {
   return port;
 };
 
-export const connect = async (port, accepts, timeout = 40000, progress = () => {}) => {
+export const connect = async (port, accepts, timeout = 40000, progress = () => {}, beforeRuntime) => {
   let target;
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
@@ -92,6 +92,7 @@ export const connect = async (port, accepts, timeout = 40000, progress = () => {
     throw new Error(`QA condition not reached: ${expression}`);
   };
   try {
+    await beforeRuntime?.(send);
     await send('Runtime.enable');
     await send('Page.enable');
     const initializeDomQueries = `globalThis.qa = {

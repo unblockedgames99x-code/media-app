@@ -3,7 +3,7 @@ import { test } from 'node:test';
 
 import { connect } from './cdp.mjs';
 
-const createConnection = async (context) => {
+const createConnection = async (context, beforeRuntime) => {
   const events = [];
   const sockets = [];
   class DebugSocket {
@@ -64,6 +64,7 @@ const createConnection = async (context) => {
     (target) => target.type === 'page',
     1000,
     (event) => events.push(event),
+    beforeRuntime,
   );
   context.after(() => connection.close());
   return { connection, socket: sockets[0], events, DebugSocket };
@@ -74,6 +75,17 @@ test('CDP commands still resolve through a live connection', async (context) => 
   assert.deepEqual(await connection.send('Page.enable'), {});
   assert.equal(await connection.evaluate('true'), true);
   assert.equal(socket.commands.at(-1).method, 'Runtime.evaluate');
+});
+
+test('CDP waits for the DOM readiness probe before enabling script contexts', async (context) => {
+  const { socket } = await createConnection(context, async (send) => {
+    await send('DOM.getDocument', { depth: 1 });
+    await send('DOM.getDocument', { depth: 1 });
+  });
+  assert.deepEqual(
+    socket.commands.slice(0, 3).map((command) => command.method),
+    ['DOM.getDocument', 'DOM.getDocument', 'Runtime.enable'],
+  );
 });
 
 test('CDP closes pending commands and clears their timeout', async (context) => {

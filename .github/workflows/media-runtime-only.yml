@@ -43,7 +43,7 @@ jobs:
         with:
           node-version: '24'
       - name: Check runtime verification transport
-        run: node --test _scripts/cdp.test.mjs _scripts/native-handshake.test.mjs
+        run: node --test _scripts/cdp.test.mjs
       - name: Record and validate source build
         env:
           SOURCE_RUN_ID: ${{ inputs.source_run_id }}
@@ -79,8 +79,6 @@ jobs:
             '_scripts/cdp.mjs',
             '_scripts/cdp.test.mjs',
             '_scripts/smoke-portable.mjs',
-            '_scripts/native-handshake.mjs',
-            '_scripts/native-handshake.test.mjs',
             'packages/player/src/views/Artist/Artist.test-wrapper.tsx',
             'packages/player/src/views/Artist/Artist.test.tsx',
             'packages/player/src/views/Artist/__snapshots__/Artist.test.tsx.snap',

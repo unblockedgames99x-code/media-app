@@ -7,7 +7,6 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { connect, delay, freePort } from './cdp.mjs';
-import { monitorNativeHandshake } from './native-handshake.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { values } = parseArgs({ options: {
@@ -48,9 +47,6 @@ const cacheRoot = platform === 'windows' ? process.env.LOCALAPPDATA
 assert(cacheRoot, 'The application cache directory is unavailable.');
 const profileCache = path.join(path.resolve(cacheRoot), identifier);
 assert.equal(path.dirname(profileCache), path.resolve(cacheRoot));
-const handshakeDirectory = path.join(profileCache, 'video-engine');
-await mkdir(handshakeDirectory, { recursive: true });
-assert.deepEqual(await readdir(handshakeDirectory), [], 'The owned QA profile already contains a native video handshake.');
 const expectedEngine = await realpath(platform === 'windows'
   ? path.join(path.dirname(executable), 'video-engine/media-video.exe')
   : platform === 'macos'
@@ -85,7 +81,6 @@ let reopened;
 let video;
 let host;
 let nativeHostPid;
-let nativeReadiness;
 let logs = '';
 let launchError;
 
@@ -142,37 +137,70 @@ const inspectProcess = pid => {
     ], { encoding: 'utf8', timeout: 10000, windowsHide: true }));
     return { parentPid: details.ParentProcessId, executable: details.ExecutablePath, args: details.CommandLine };
   }
-  const details = execFileSync('ps', ['-p', String(pid), '-o', 'ppid=', '-o', 'comm='], { encoding: 'utf8', timeout: 5000 }).trim();
+  const details = execFileSync('ps', ['-ww', '-p', String(pid), '-o', 'ppid=', '-o', 'comm='], { encoding: 'utf8', timeout: 5000 }).trim();
   const match = /^(\d+)\s+(.+)$/.exec(details);
   assert(match, 'The native process could not be inspected.');
-  const args = execFileSync('ps', ['-p', String(pid), '-o', 'args='], { encoding: 'utf8', timeout: 5000 }).trim();
+  const args = execFileSync('ps', ['-ww', '-p', String(pid), '-o', 'args='], { encoding: 'utf8', timeout: 5000 }).trim();
   return { parentPid: Number(match[1]), executable: platform === 'linux' ? `/proc/${pid}/exe` : match[2], args };
 };
 
+const validateOwnedEngine = async () => {
+  let processes;
+  if (platform === 'windows') {
+    const listing = execFileSync('powershell.exe', ['-NoProfile', '-Command',
+      "Get-CimInstance Win32_Process -Filter \"Name = 'media-video.exe'\" | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress",
+    ], { encoding: 'utf8', timeout: 10000, windowsHide: true }).trim();
+    const parsed = listing ? JSON.parse(listing) : [];
+    processes = (Array.isArray(parsed) ? parsed : [parsed]).map(item => ({ pid: item.ProcessId, args: item.CommandLine ?? '' }));
+  } else {
+    const listing = execFileSync('ps', ['-ww', '-eo', 'pid=,args='], { encoding: 'utf8', timeout: 5000 });
+    processes = listing.split('\n').map(line => /^\s*(\d+)\s+(.*)$/.exec(line))
+      .filter(Boolean).map(match => ({ pid: Number(match[1]), args: match[2] }));
+  }
+  const owned = processes.filter(item => item.args.includes(path.join(profileDirectory, 'video')) &&
+    item.args.includes('media-video') && !item.args.includes('--type='));
+  assert.equal(owned.length, 1, 'The isolated video engine process could not be identified.');
+  const pid = owned[0].pid;
+  assert(application && application.exitCode === null, 'The owned application exited before native video initialization.');
+  const engine = inspectProcess(pid);
+  const enginePath = await realpath(engine.executable);
+  assert.equal(platform === 'windows' ? enginePath.toLowerCase() : enginePath,
+    platform === 'windows' ? expectedEngine.toLowerCase() : expectedEngine,
+    'The initialized video page does not belong to the packaged video executable.');
+  assert(engine.args.includes(path.join(profileDirectory, 'video')), 'The native video engine does not belong to the owned QA profile.');
+  let ancestor = engine.parentPid;
+  for (let depth = 0; ancestor !== application.pid && depth < 8; depth++) {
+    ancestor = inspectProcess(ancestor).parentPid;
+  }
+  assert.equal(ancestor, application.pid, 'The native video engine is outside the owned application process tree.');
+  nativeHostPid = engine.parentPid;
+  return pid;
+};
+
 try {
-  stage('wait-native-video-readiness');
-  nativeReadiness = monitorNativeHandshake(handshakeDirectory, async handshake => {
-    assert(application && application.exitCode === null, 'The owned application exited before native video initialization.');
-    const engine = inspectProcess(handshake.pid);
-    const enginePath = await realpath(engine.executable);
-    assert.equal(platform === 'windows' ? enginePath.toLowerCase() : enginePath,
-      platform === 'windows' ? expectedEngine.toLowerCase() : expectedEngine,
-      'The native handshake does not belong to the packaged video executable.');
-    assert(engine.args.includes(path.join(profileDirectory, 'video')), 'The native video engine does not belong to the owned QA profile.');
-    let ancestor = engine.parentPid;
-    for (let depth = 0; ancestor !== application.pid && depth < 8; depth++) {
-      ancestor = inspectProcess(ancestor).parentPid;
-    }
-    assert.equal(ancestor, application.pid, 'The native video engine is outside the owned application process tree.');
-    nativeHostPid = engine.parentPid;
-  });
   application = launch();
-  report.nativeReadiness = await nativeReadiness.ready;
-  assert(!logs.includes('CarterMedia video engine failed to start'), 'The first video engine failed native initialization before debugger attachment.');
   stage('connect-video');
-  video = await connect(videoPort, item => item.type === 'page' && item.url.startsWith('app:'), 60000, recordProgress);
-  stage('initialize-video');
   const mode = platform === 'windows' ? 'embedded' : 'handoff';
+  video = await connect(videoPort, item => item.type === 'page' && item.url.split('#')[0] === 'app://bundle/index.html', 60000, recordProgress, async send => {
+    stage('wait-native-video-readiness');
+    const deadline = Date.now() + 60000;
+    while (Date.now() < deadline) {
+      const { root: document } = await send('DOM.getDocument', { depth: 1 });
+      const html = document.children?.find(node => node.nodeName === 'HTML');
+      const attributes = html?.attributes ?? [];
+      const modeIndex = attributes.indexOf('data-workspace-mode');
+      if (modeIndex >= 0 && attributes[modeIndex + 1] === mode) {
+        assert.equal(document.documentURL?.split('#')[0], 'app://bundle/index.html', 'The initialized document is outside the packaged video application.');
+        const pid = await validateOwnedEngine();
+        assert(!logs.includes('CarterMedia video engine failed to start'), 'The first video engine failed native initialization before debugger attachment.');
+        report.nativeReadiness = { pid, workspaceMode: mode, observedFrom: 'initialized-dom' };
+        return;
+      }
+      await delay(100);
+    }
+    throw new Error('The packaged app did not complete native video initialization before the 60-second readiness deadline.');
+  });
+  stage('initialize-video');
   await video.until(`document.documentElement.dataset.workspaceMode===${JSON.stringify(mode)}&&location.hash===${JSON.stringify(`#/watch/${videoId}`)}`);
   report.workspace = await video.evaluate("({mode:document.documentElement.dataset.workspaceMode,route:location.hash,returnAvailable:typeof window.mediaWorkspace?.returnToMusic==='function',buttons:document.getElementsByTagName('button').length})");
   assert.equal(report.workspace.returnAvailable, true);
@@ -366,7 +394,6 @@ try {
   await writeFile(path.join(output, 'runtime.log'), logs);
   throw error;
 } finally {
-  nativeReadiness?.close();
   video?.close();
   host?.close();
   stopApplication();
