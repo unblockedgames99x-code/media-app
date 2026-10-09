@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-10-09T00:00",
+    "description": "Windows video inputs now receive native keyboard focus when clicked, including search, text editing, and keyboard shortcuts. The home heading now reads Goodtube - No ads No sponsors No distractions.",
+    "type": "fix",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "Desktop", "color": "orange" }]
+  },
+  {
+    "date": "2026-10-09T00:00",
     "description": "Opening a new video link restores the video window even when a recent return to Music is still finishing. Repeated links keep the latest video request and do not leave the player hidden.",
     "type": "fix",
     "contributors": ["Media contributors"],
@@ -15,7 +22,7 @@
   },
   {
     "date": "2026-10-09T00:00",
-    "description": "Videos now shares the Music interface's bordered cards, theme colors, readable text, and responsive hover controls, with the centered heading Goodtube - Noads No sponsors No distractions. Feed filters, refresh, recommendations, and watch progress remain available.",
+    "description": "Videos now shares the Music interface's bordered cards, theme colors, readable text, and responsive hover controls, with the centered heading Goodtube - No ads No sponsors No distractions. Feed filters, refresh, recommendations, and watch progress remain available.",
     "type": "improvement",
     "contributors": ["Media contributors"],
     "tags": [{ "label": "UI", "color": "purple" }]

@@ -79,7 +79,7 @@ For optional sources such as **Bandcamp**, open **Settings → Plugins → Store
 
 Videos keeps search, recommendations, subscriptions and profiles, channels, playlists, history, downloads, captions, SponsorBlock, playback settings, and external-player options. Playback recovery includes bounded requests and a restart option when a video engine stops responding. Service availability and third-party plugins can change independently of this app.
 
-The video home uses the Music interface's themed cards and controls, with the centered heading **Goodtube - Noads No sponsors No distractions**. Choose **For you**, **Following**, **Discover**, or **Continue watching**, or refresh the feed. Shared appearance choices live in **Settings → Make it yours**; Videos hides duplicate controls that the combined app overrides.
+The video home uses the Music interface's themed cards and controls, with the centered heading **Goodtube - No ads No sponsors No distractions**. Choose **For you**, **Following**, **Discover**, or **Continue watching**, or refresh the feed. Shared appearance choices live in **Settings → Make it yours**; Videos hides duplicate controls that the combined app overrides.
 
 ## Updates and your data
 

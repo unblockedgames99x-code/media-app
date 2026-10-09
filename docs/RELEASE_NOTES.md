@@ -1,10 +1,12 @@
+This update fixes native Windows keyboard focus in the video search and other video inputs, and corrects the home heading to **Goodtube - No ads No sponsors No distractions**.
+
 A personal music and video workspace with a neutral interface and a first-launch setup.
 
 Choose your own name, fonts, colors, layout, and sound preferences in Settings. Music plugins, playlists, library tools, video subscriptions, recommendations, downloads, captions, and playback options remain available.
 
 New profiles start with Spotify for music information and YouTube for streaming. The light/dark toggle follows your selected colors and saves your choice. The miniplayer uses your chosen name, logo, fonts, and theme, and updates when you change them.
 
-The video home now matches the Music interface, with themed bordered cards and the centered heading **Goodtube - Noads No sponsors No distractions**. Sidebars and your custom header identity share polished hover outlines. Duplicate appearance settings and upstream promotional buttons are removed. Clicking a song row starts playback, and clicking Windows video inputs now focuses their page for typing.
+The video home now matches the Music interface, with themed bordered cards and the centered heading **Goodtube - No ads No sponsors No distractions**. Sidebars and your custom header identity share polished hover outlines. Duplicate appearance settings and upstream promotional buttons are removed. Clicking a song row starts playback, and clicking Windows video inputs now focuses their page for typing.
 
 New video links restore the video window when a return to Music is still finishing, including repeated links to the same video.
 

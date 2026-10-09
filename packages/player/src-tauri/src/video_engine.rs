@@ -209,6 +209,8 @@ struct Engine {
     monitor_started: bool,
     workspace_return_revision: u64,
     fullscreen: bool,
+    #[cfg(windows)]
+    focus_relay: Option<native::FocusRelay>,
 }
 
 impl Engine {
@@ -230,6 +232,8 @@ impl Engine {
     }
 
     fn stop(&mut self) {
+        #[cfg(windows)]
+        self.focus_relay.take();
         if let Some(hwnd) = self.hwnd {
             native::hide(hwnd, self.child.id());
         }
@@ -383,6 +387,8 @@ fn start_engine(
         monitor_started: false,
         workspace_return_revision: 0,
         fullscreen: false,
+        #[cfg(windows)]
+        focus_relay: None,
     })
 }
 
@@ -605,6 +611,15 @@ pub async fn video_engine_attach(
                     .and_then(|handshake| {
                         let hwnd = handshake.validate(engine.child.id())?;
                         native::attach(hwnd, engine.parent, engine.child.id())?;
+                        #[cfg(windows)]
+                        {
+                            engine.focus_relay = Some(native::FocusRelay::install(
+                                &app,
+                                hwnd,
+                                engine.parent,
+                                engine.child.id(),
+                            )?);
+                        }
                         engine.hwnd = Some(hwnd);
                         engine.port = Some(handshake.port);
                         Ok(())
@@ -615,7 +630,22 @@ pub async fn video_engine_attach(
                 }
                 let _ = std::fs::remove_file(&engine.handshake_path);
             }
-            if let Some(hwnd) = engine.hwnd {
+            #[cfg(windows)]
+            let focus_ready = match engine
+                .focus_relay
+                .as_ref()
+                .and_then(native::FocusRelay::ready)
+            {
+                Some(Ok(())) => true,
+                Some(Err(error)) => {
+                    stop_slot(&app, &mut slot);
+                    return Err(error);
+                }
+                None => false,
+            };
+            #[cfg(not(windows))]
+            let focus_ready = true;
+            if let Some(hwnd) = engine.hwnd.filter(|_| focus_ready) {
                 if let Err(error) = native::position(
                     hwnd,
                     engine.parent,
@@ -1213,11 +1243,19 @@ pub fn video_engine_status(
         let inspection = engine
             .hwnd
             .and_then(|hwnd| native::inspect(hwnd, engine.parent, engine.child.id()));
+        #[cfg(windows)]
+        let focus_ready = engine
+            .focus_relay
+            .as_ref()
+            .is_some_and(|relay| matches!(relay.ready(), Some(Ok(()))));
+        #[cfg(not(windows))]
+        let focus_ready = true;
         return Ok(VideoEngineInspection {
             ready: if cfg!(windows) {
-                inspection
-                    .as_ref()
-                    .is_some_and(|details| details.parent == engine.parent)
+                focus_ready
+                    && inspection
+                        .as_ref()
+                        .is_some_and(|details| details.parent == engine.parent)
             } else {
                 engine.port.is_some()
             },
@@ -1267,12 +1305,172 @@ pub fn video_engine_status(
 #[cfg(windows)]
 mod native {
     use super::{NativeInspection, PhysicalBounds};
-    use tauri::WebviewWindow;
-    use windows_sys::Win32::Foundation::{GetLastError, SetLastError, HWND, RECT};
+    use std::sync::{Arc, OnceLock};
+    use tauri::{AppHandle, WebviewWindow};
+    use windows_sys::Win32::Foundation::{
+        GetLastError, SetLastError, HWND, LPARAM, LRESULT, POINT, RECT, WPARAM,
+    };
+    use windows_sys::Win32::Graphics::Gdi::ClientToScreen;
+    use windows_sys::Win32::System::Threading::GetCurrentThreadId;
     use windows_sys::Win32::UI::HiDpi::{
         AreDpiAwarenessContextsEqual, GetWindowDpiAwarenessContext,
     };
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetFocus, IsWindowEnabled, SetFocus};
+    use windows_sys::Win32::UI::Shell::{
+        DefSubclassProc, GetWindowSubclass, RemoveWindowSubclass, SetWindowSubclass,
+    };
     use windows_sys::Win32::UI::WindowsAndMessaging::*;
+
+    const FOCUS_SUBCLASS_ID: usize = 0x4d454449;
+
+    #[derive(Clone, Copy, PartialEq)]
+    struct FocusTarget {
+        handle: isize,
+        pid: u32,
+    }
+
+    pub struct FocusRelay {
+        app: AppHandle,
+        parent: isize,
+        target: FocusTarget,
+        ready: Arc<OnceLock<Result<(), String>>>,
+    }
+
+    impl FocusRelay {
+        pub fn install(
+            app: &AppHandle,
+            handle: isize,
+            parent: isize,
+            pid: u32,
+        ) -> Result<Self, String> {
+            let target = FocusTarget { handle, pid };
+            let ready = Arc::new(OnceLock::new());
+            let installed = ready.clone();
+            app.run_on_main_thread(move || {
+                let result = unsafe { install_focus_hook(parent as HWND, target) };
+                let _ = installed.set(result);
+            })
+            .map_err(|error| error.to_string())?;
+            Ok(Self {
+                app: app.clone(),
+                parent,
+                target,
+                ready,
+            })
+        }
+
+        pub fn ready(&self) -> Option<Result<(), String>> {
+            self.ready.get().cloned()
+        }
+    }
+
+    impl Drop for FocusRelay {
+        fn drop(&mut self) {
+            let parent = self.parent;
+            let target = self.target;
+            let _ = self.app.run_on_main_thread(move || unsafe {
+                remove_focus_hook(parent as HWND, Some(target));
+            });
+        }
+    }
+
+    unsafe fn remove_focus_hook(parent: HWND, expected: Option<FocusTarget>) -> bool {
+        let mut reference = 0;
+        if GetWindowSubclass(
+            parent,
+            Some(focus_parent_proc),
+            FOCUS_SUBCLASS_ID,
+            &mut reference,
+        ) == 0
+        {
+            return true;
+        }
+        let target = reference as *mut FocusTarget;
+        if expected.is_some_and(|expected| expected != *target) {
+            return false;
+        }
+        if RemoveWindowSubclass(parent, Some(focus_parent_proc), FOCUS_SUBCLASS_ID) == 0 {
+            return false;
+        }
+        drop(Box::from_raw(target));
+        true
+    }
+
+    unsafe fn install_focus_hook(parent: HWND, target: FocusTarget) -> Result<(), String> {
+        validate(target.handle as HWND, parent, target.pid)?;
+        let mut owner = 0;
+        let thread = GetWindowThreadProcessId(parent, &mut owner);
+        if thread != GetCurrentThreadId() || owner != std::process::id() {
+            return Err("Video focus must be connected on the host window thread".into());
+        }
+        if GetParent(target.handle as HWND) != parent {
+            return Err("Video focus target is no longer embedded".into());
+        }
+        if !remove_focus_hook(parent, None) {
+            return Err("Could not replace the previous video focus connection".into());
+        }
+        let reference = Box::into_raw(Box::new(target));
+        if SetWindowSubclass(
+            parent,
+            Some(focus_parent_proc),
+            FOCUS_SUBCLASS_ID,
+            reference as usize,
+        ) == 0
+        {
+            drop(Box::from_raw(reference));
+            return Err("Could not observe embedded video clicks".into());
+        }
+        Ok(())
+    }
+
+    unsafe fn focus_clicked_video(parent: HWND, target: FocusTarget, coordinates: LPARAM) {
+        let child = target.handle as HWND;
+        if validate(child, parent, target.pid).is_err()
+            || GetParent(child) != parent
+            || IsWindowVisible(child) == 0
+            || IsWindowEnabled(child) == 0
+            || GetAncestor(GetForegroundWindow(), GA_ROOT) != parent
+        {
+            return;
+        }
+        let mut point = POINT {
+            x: coordinates as u16 as i16 as i32,
+            y: (coordinates as usize >> 16) as u16 as i16 as i32,
+        };
+        if ClientToScreen(parent, &mut point) == 0 {
+            return;
+        }
+        let clicked = WindowFromPoint(point);
+        if clicked != child && IsChild(child, clicked) == 0 {
+            return;
+        }
+        let focused = GetFocus();
+        if focused != child && IsChild(child, focused) == 0 {
+            SetFocus(child);
+        }
+    }
+
+    unsafe extern "system" fn focus_parent_proc(
+        parent: HWND,
+        message: u32,
+        wparam: WPARAM,
+        lparam: LPARAM,
+        _subclass: usize,
+        reference: usize,
+    ) -> LRESULT {
+        let target = *(reference as *const FocusTarget);
+        let child_event = (wparam & 0xffff) as u32;
+        if message == WM_NCDESTROY
+            || (message == WM_PARENTNOTIFY && child_event == WM_DESTROY && lparam == target.handle)
+        {
+            remove_focus_hook(parent, Some(target));
+        }
+        let result = DefSubclassProc(parent, message, wparam, lparam);
+        if message == WM_PARENTNOTIFY && child_event == WM_LBUTTONDOWN {
+            focus_clicked_video(parent, target, lparam);
+        }
+        result
+    }
 
     pub fn parent_handle(window: &WebviewWindow) -> Result<isize, String> {
         window
@@ -1331,7 +1529,8 @@ mod native {
             SetWindowLongPtrW(
                 hwnd,
                 GWL_EXSTYLE,
-                ((extended & !WS_EX_APPWINDOW) | WS_EX_TOOLWINDOW) as isize,
+                ((extended & !(WS_EX_APPWINDOW | WS_EX_NOPARENTNOTIFY)) | WS_EX_TOOLWINDOW)
+                    as isize,
             );
             SetLastError(0);
             if SetParent(hwnd, parent).is_null() && GetLastError() != 0 {
