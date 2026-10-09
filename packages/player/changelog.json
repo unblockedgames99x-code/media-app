@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-10-09T00:00",
+    "description": "Play now and Play all start music from an empty queue on first launch. The volume button now mutes and restores playback without losing the chosen volume, with accessible labels and automatic unmute when adjusting the slider.",
+    "type": "fix",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "Audio", "color": "blue" }]
+  },
+  {
+    "date": "2026-10-09T00:00",
     "description": "An unbranded workspace with first launch setup and more than 50 personalization controls for colors, fonts, layout, backgrounds, artwork, interface sounds, equalizer, balance, and mono audio. Profiles can be saved, imported, exported, or reset.",
     "type": "feature",
     "contributors": [

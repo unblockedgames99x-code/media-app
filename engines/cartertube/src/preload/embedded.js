@@ -1,9 +1,10 @@
 import { contextBridge, ipcRenderer, webFrame } from 'electron/renderer'
-import { EMBEDDED_COMMAND_CHANNEL, EMBEDDED_RESULT_CHANNEL, WORKSPACE_RETURN_CHANNEL, sanitizeThemeVariables, sanitizeNavigationPath, sanitizeAppearance, navigationStatus } from '../shared/embedded.mjs'
+import { EMBEDDED_COMMAND_CHANNEL, EMBEDDED_RESULT_CHANNEL, WORKSPACE_RETURN_CHANNEL, WORKSPACE_STATE_CHANNEL, sanitizeThemeVariables, sanitizeNavigationPath, sanitizeAppearance, navigationStatus } from '../shared/embedded.mjs'
 import { applyPersonalization, applyAppearance, getAppearance } from './personalization'
 
 contextBridge.exposeInMainWorld('mediaWorkspace', {
   returnToMusic: () => ipcRenderer.send(WORKSPACE_RETURN_CHANNEL),
+  getWindowState: () => ipcRenderer.invoke(WORKSPACE_STATE_CHANNEL),
   getAppearance: () => getAppearance()
 })
 

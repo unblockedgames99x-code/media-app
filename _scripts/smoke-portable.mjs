@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
-import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -29,9 +29,10 @@ if (!executable && platform === 'windows') {
   const directory = path.join(root, 'build/releases');
   const file = (await readdir(directory)).find(name => name.includes(`-linux-${values.arch}`) && name.endsWith('.AppImage'));
   assert(file, 'The packaged Linux AppImage is missing.');
-  executable = path.join(directory, file);
+  executable = path.join(root, 'build/verify', `${platform}-${values.arch}`, 'squashfs-root/AppRun');
 }
 executable = path.resolve(executable);
+await access(executable);
 const profile = `qa-runtime-${Date.now()}-${process.pid}`;
 const identifier = `${configuration.identifier}.profile.${profile}`;
 const dataRoot = platform === 'windows' ? process.env.APPDATA
@@ -55,12 +56,12 @@ const environment = {
   ...process.env,
   CARTERMEDIA_VIDEO_DEBUG_PORT: String(videoPort),
   WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${hostPort} --remote-debugging-address=127.0.0.1`,
-  ...(platform === 'linux' && executable.endsWith('.AppImage') ? { APPIMAGE_EXTRACT_AND_RUN: '1' } : {}),
 };
 const report = { platform, arch: values.arch, startedAt: new Date().toISOString() };
 let application;
 let video;
 let host;
+let nativeHostPid;
 let logs = '';
 let launchError;
 
@@ -85,6 +86,18 @@ const portIsOpen = async () => {
   }
 };
 
+const stopApplication = () => {
+  if (nativeHostPid && nativeHostPid !== application?.pid) {
+    try {
+      process.kill(nativeHostPid);
+    } catch (error) {
+      if (error.code !== 'ESRCH') throw error;
+    }
+  } else {
+    application?.kill();
+  }
+};
+
 try {
   application = launch();
   video = await connect(videoPort, item => item.type === 'page' && item.url.startsWith('app:'), 60000);
@@ -93,13 +106,23 @@ try {
   report.workspace = await video.evaluate("({mode:document.documentElement.dataset.workspaceMode,route:location.hash,returnAvailable:typeof window.mediaWorkspace?.returnToMusic==='function',buttons:document.getElementsByTagName('button').length})");
   assert.equal(report.workspace.returnAvailable, true);
   assert(report.workspace.buttons > 0, 'The packaged video interface did not render.');
+  report.windowState = await video.evaluate('window.mediaWorkspace.getWindowState()');
+  assert.equal(typeof report.windowState.visible, 'boolean');
+  assert(Number.isSafeInteger(report.windowState.returnRevision));
   await video.until("(()=>{const stylesheets=[...document.getElementsByTagName('link')].filter(element=>element.relList.contains('stylesheet'));return stylesheets.length>0&&stylesheets.every(element=>element.sheet&&element.sheet.cssRules.length>0)})()");
   report.stylesheets = await video.evaluate("[...document.getElementsByTagName('link')].filter(element=>element.relList.contains('stylesheet')).map(element=>({loaded:Boolean(element.sheet),rules:element.sheet?.cssRules.length??0}))");
 
   if (platform === 'linux') {
-    const listing = execFileSync('ps', ['-eo', 'pid=,args='], { encoding: 'utf8' });
-    const rendererPids = listing.split('\n').filter(line => line.includes('media-video') && line.includes('--type=renderer'))
-      .map(line => Number(line.trim().split(/\s+/, 1)[0]));
+    const listing = execFileSync('ps', ['-eo', 'pid=,ppid=,args='], { encoding: 'utf8' });
+    const processes = listing.split('\n').map(line => /^\s*(\d+)\s+(\d+)\s+(.*)$/.exec(line))
+      .filter(Boolean).map(match => ({ pid: Number(match[1]), parentPid: Number(match[2]), args: match[3] }));
+    const engine = processes.filter(item => item.args.includes('media-video') &&
+      item.args.includes(path.join(profileDirectory, 'video')) && !item.args.includes('--type='));
+    assert.equal(engine.length, 1, 'The isolated video engine process could not be identified.');
+    nativeHostPid = engine[0].parentPid;
+    assert(nativeHostPid > 1 && nativeHostPid !== process.pid, 'The native application process could not be identified.');
+    const rendererPids = processes.filter(item => item.args.includes('media-video') && item.args.includes('--type=renderer'))
+      .map(item => item.pid);
     assert(rendererPids.length > 0, 'No Electron renderer process is running.');
     report.rendererSandbox = [];
     for (const pid of rendererPids) {
@@ -112,9 +135,11 @@ try {
   }
 
   if (platform !== 'windows') {
-    await video.until('!document.hidden');
+    await video.until('window.mediaWorkspace.getWindowState().then(state=>state.visible)');
+    const beforeReturn = await video.evaluate('window.mediaWorkspace.getWindowState()');
     await video.evaluate('window.mediaWorkspace.returnToMusic()');
-    await video.until('document.hidden');
+    await video.until(`window.mediaWorkspace.getWindowState().then(state=>!state.visible&&state.returnRevision>${beforeReturn.returnRevision})`);
+    await delay(1500);
     report.returnToMusic = true;
     const reopened = launch();
     await new Promise((resolve, reject) => {
@@ -125,7 +150,7 @@ try {
       });
       reopened.once('error', reject);
     });
-    await video.until('!document.hidden');
+    await video.until('window.mediaWorkspace.getWindowState().then(state=>state.visible)');
     report.reopenedVideos = true;
   } else {
     host = await connect(hostPort, item => item.type === 'page' && /tauri\.localhost|tauri:/.test(item.url));
@@ -140,7 +165,7 @@ try {
   video = undefined;
   host?.close();
   host = undefined;
-  application.kill();
+  stopApplication();
   const deadline = Date.now() + 15000;
   while (await portIsOpen()) {
     assert(Date.now() < deadline, 'The video engine remained alive after its host exited.');
@@ -157,7 +182,7 @@ try {
 } finally {
   video?.close();
   host?.close();
-  application?.kill();
+  stopApplication();
   await writeFile(path.join(output, 'runtime.json'), JSON.stringify(report, null, 2));
   await delay(1500);
   await rm(profileDirectory, { recursive: true, force: true });

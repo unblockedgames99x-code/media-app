@@ -25,7 +25,11 @@ jobs:
       - uses: pnpm/action-setup@v6
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec turbo run build:frontend --filter=@nuclearplayer/player
-      - name: Check setup, personalization, themes, and video integration
-        run: pnpm --filter @nuclearplayer/player exec vitest --run src/App.test.tsx src/views/Videos/Videos.test.tsx src/components/ConnectedVideoNavigation.test.tsx src/views/Personalization/Personalization.test.tsx src/views/Personalization/PersonalizationSetup.test.tsx src/views/Themes/Themes.test.tsx src/components/ConnectedThemeController.test.tsx
+      - name: Check the complete player and music playback actions
+        run: pnpm --filter @nuclearplayer/player exec vitest --run
+      - name: Check audio playback behavior
+        run: pnpm --filter @nuclearplayer/hifi exec vitest --run
+      - name: Check music volume controls
+        run: pnpm --filter @nuclearplayer/ui exec vitest --run src/components/PlayerBar/PlayerBar.test.tsx
       - run: node _scripts/build-portable.mjs --plan
       - run: node --check _scripts/build-portable.mjs

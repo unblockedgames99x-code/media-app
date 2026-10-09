@@ -595,6 +595,9 @@
     }
   },
   "playerBar": {
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "volume": "Volume",
     "noTrackPlaying": "No track playing",
     "shuffleOn": "Shuffle: on",
     "shuffleOff": "Shuffle: off",

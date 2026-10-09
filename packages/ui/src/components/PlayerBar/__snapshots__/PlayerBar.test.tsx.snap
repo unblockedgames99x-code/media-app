@@ -218,8 +218,11 @@ exports[`PlayerBar > (Snapshot) active states render 1`] = `
           class="flex items-center gap-2"
         >
           <button
+            aria-label="Mute"
+            aria-pressed="false"
             class="inline-flex cursor-pointer items-center rounded-md whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 size-10 justify-center"
             data-headlessui-state=""
+            data-testid="player-mute-button"
             type="button"
           >
             <svg
@@ -253,6 +256,21 @@ exports[`PlayerBar > (Snapshot) active states render 1`] = `
             <div
               class="flex w-full flex-col gap-2"
             >
+              <div
+                class="sr-only"
+              >
+                <div
+                  class="flex w-full items-center justify-between text-sm"
+                >
+                  <label
+                    class="text-foreground font-semibold"
+                    for=":r1:"
+                    id=":r1:-label"
+                  >
+                    Volume
+                  </label>
+                </div>
+              </div>
               <div
                 class="relative h-6 w-full overscroll-contain"
               >
@@ -503,8 +521,11 @@ exports[`PlayerBar > (Snapshot) default render 1`] = `
           class="flex items-center gap-2"
         >
           <button
+            aria-label="Mute"
+            aria-pressed="false"
             class="inline-flex cursor-pointer items-center rounded-md whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 size-10 justify-center"
             data-headlessui-state=""
+            data-testid="player-mute-button"
             type="button"
           >
             <svg
@@ -538,6 +559,21 @@ exports[`PlayerBar > (Snapshot) default render 1`] = `
             <div
               class="flex w-full flex-col gap-2"
             >
+              <div
+                class="sr-only"
+              >
+                <div
+                  class="flex w-full items-center justify-between text-sm"
+                >
+                  <label
+                    class="text-foreground font-semibold"
+                    for=":r0:"
+                    id=":r0:-label"
+                  >
+                    Volume
+                  </label>
+                </div>
+              </div>
               <div
                 class="relative h-6 w-full overscroll-contain"
               >
@@ -791,8 +827,11 @@ exports[`PlayerBar > (Snapshot) long metadata truncation 1`] = `
             class="flex items-center gap-2"
           >
             <button
+              aria-label="Mute"
+              aria-pressed="false"
               class="inline-flex cursor-pointer items-center rounded-md whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 size-10 justify-center"
               data-headlessui-state=""
+              data-testid="player-mute-button"
               type="button"
             >
               <svg
@@ -826,6 +865,21 @@ exports[`PlayerBar > (Snapshot) long metadata truncation 1`] = `
               <div
                 class="flex w-full flex-col gap-2"
               >
+                <div
+                  class="sr-only"
+                >
+                  <div
+                    class="flex w-full items-center justify-between text-sm"
+                  >
+                    <label
+                      class="text-foreground font-semibold"
+                      for=":r2:"
+                      id=":r2:-label"
+                    >
+                      Volume
+                    </label>
+                  </div>
+                </div>
                 <div
                   class="relative h-6 w-full overscroll-contain"
                 >
@@ -1098,8 +1152,11 @@ exports[`PlayerBar > (Snapshot) no artwork fallback 1`] = `
           class="flex items-center gap-2"
         >
           <button
+            aria-label="Mute"
+            aria-pressed="false"
             class="inline-flex cursor-pointer items-center rounded-md whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 size-10 justify-center"
             data-headlessui-state=""
+            data-testid="player-mute-button"
             type="button"
           >
             <svg
@@ -1133,6 +1190,21 @@ exports[`PlayerBar > (Snapshot) no artwork fallback 1`] = `
             <div
               class="flex w-full flex-col gap-2"
             >
+              <div
+                class="sr-only"
+              >
+                <div
+                  class="flex w-full items-center justify-between text-sm"
+                >
+                  <label
+                    class="text-foreground font-semibold"
+                    for=":r3:"
+                    id=":r3:-label"
+                  >
+                    Volume
+                  </label>
+                </div>
+              </div>
               <div
                 class="relative h-6 w-full overscroll-contain"
               >

@@ -10,6 +10,7 @@ import {
 import { useQueueActions } from '../hooks/useQueueActions';
 import { useTrackActions } from '../hooks/useTrackActions';
 import { useTrackTableLabels } from '../hooks/useTrackTableLabels';
+import { playbackManager } from '../services/playback';
 import { ConnectedTrackContextMenu } from './ConnectedTrackContextMenu';
 
 type ConnectedTrackTableProps = Omit<
@@ -43,6 +44,7 @@ export const ConnectedTrackTable: FC<ConnectedTrackTableProps> = (props) => {
         onPlayAll: () => {
           queueActions.clearQueue();
           queueActions.addToQueue(restProps.tracks);
+          playbackManager.play();
         },
         onAddAllToQueue: () => {
           queueActions.addToQueue(restProps.tracks);

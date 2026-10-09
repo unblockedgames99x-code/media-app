@@ -172,6 +172,48 @@ describe('ConnectedControls', () => {
 });
 
 describe('ConnectedVolume', () => {
+  it('mute toggles the saved mute setting and preserves the selected volume', async () => {
+    Wrapper.seedVolume(0.6);
+    await Wrapper.mount();
+
+    expect(Wrapper.volume.muteButton).toHaveAttribute('aria-pressed', 'false');
+    await Wrapper.volume.toggleMute();
+    expect(useSettingsStore.getState().values['core.playback.muted']).toBe(
+      true,
+    );
+    expect(useSettingsStore.getState().values['core.playback.volume']).toBe(
+      0.6,
+    );
+    expect(Wrapper.volume.rangeInput).toHaveValue('60');
+
+    await Wrapper.volume.toggleMute();
+    expect(useSettingsStore.getState().values['core.playback.muted']).toBe(
+      false,
+    );
+    expect(Wrapper.volume.muteButton).toHaveAttribute('aria-pressed', 'false');
+    expect(Wrapper.volume.rangeInput).toHaveValue('60');
+  });
+
+  it('adjusting the volume unmutes playback', async () => {
+    Wrapper.seedVolume(0.6);
+    useSettingsStore.setState({
+      values: {
+        ...useSettingsStore.getState().values,
+        'core.playback.muted': true,
+      },
+    });
+    await Wrapper.mount();
+
+    await Wrapper.volume.changeValue(30);
+
+    expect(useSettingsStore.getState().values['core.playback.volume']).toBe(
+      0.3,
+    );
+    expect(useSettingsStore.getState().values['core.playback.muted']).toBe(
+      false,
+    );
+  });
+
   it('volume slider reflects the current volume from settings store', async () => {
     Wrapper.seedVolume(0.6);
     await Wrapper.mount();

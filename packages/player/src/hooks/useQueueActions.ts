@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import type { Track } from '@nuclearplayer/model';
 
+import { playbackManager } from '../services/playback';
 import { useQueueStore } from '../stores/queueStore';
 
 // You can't replace this with lodash pick because it causes infinite re-renders
@@ -26,6 +27,7 @@ export const useQueueActions = () => {
     (track: Track) => {
       clearQueue();
       addToQueue([track]);
+      playbackManager.play();
     },
     [clearQueue, addToQueue],
   );

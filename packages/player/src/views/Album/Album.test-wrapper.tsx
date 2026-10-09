@@ -111,6 +111,13 @@ export const AlbumWrapper = {
     await this.openTrackContextMenu(trackTitle);
     await user.click(screen.getByText('Add to queue'));
   },
+  async playTrackViaContextMenu(trackTitle: string) {
+    await this.openTrackContextMenu(trackTitle);
+    await user.click(screen.getByText('Play now'));
+  },
+  async playAll() {
+    await user.click(await screen.findByTestId('play-all-button'));
+  },
   async addTrackToQueueByTitle(title: string) {
     const allTracks = await screen.findAllByTestId('track-row');
     const trackRow = allTracks.find((row) => row.textContent?.includes(title));

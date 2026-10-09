@@ -1,6 +1,7 @@
 export const EMBEDDED_COMMAND_CHANNEL = 'cartermedia:command'
 export const EMBEDDED_RESULT_CHANNEL = 'cartermedia:result'
 export const WORKSPACE_RETURN_CHANNEL = 'cartermedia:return-to-music'
+export const WORKSPACE_STATE_CHANNEL = 'cartermedia:workspace-state'
 
 const THEME_KEYS = new Set([
   '--background', '--foreground', '--muted', '--muted-foreground',

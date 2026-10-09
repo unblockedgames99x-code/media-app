@@ -1,12 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, createRouter } from '@tanstack/react-router';
-import {
-  fireEvent,
-  render,
-  RenderResult,
-  screen,
-  within,
-} from '@testing-library/react';
+import { render, RenderResult, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { QueueItem, Track } from '@nuclearplayer/model';
@@ -235,8 +229,16 @@ export const ConnectedPlayerBarWrapper = {
     get rangeInput() {
       return within(this.slider).getByRole('slider');
     },
+    get muteButton() {
+      return screen.getByRole('button', { name: 'Mute' });
+    },
+    async toggleMute() {
+      await user.click(screen.getByTestId('player-mute-button'));
+    },
     async changeValue(value: number) {
-      fireEvent.change(this.rangeInput, { target: { value: String(value) } });
+      this.rangeInput.focus();
+      await user.keyboard('{Home}');
+      await user.keyboard(`{ArrowRight>${value}}`);
     },
   },
 };

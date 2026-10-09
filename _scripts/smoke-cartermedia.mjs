@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { connect, delay, freePort } from './cdp.mjs';
+import { protectQaWindow } from './qa-window.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const output = path.join(root, 'qa');
@@ -19,9 +20,9 @@ let host, video, processHandle, enginePid;
 let logs = '';
 
 const clickText = async (client, text) => {
-  const expression = `[...document.getElementsByTagName('*')].find(element=>(['BUTTON','A'].includes(element.tagName)||['button','tab'].includes(element.getAttribute('role')))&&element.textContent.trim()===${JSON.stringify(text)})`;
-  await client.until(`Boolean(${expression})`, 10000);
-  return client.evaluate(`(${expression}).click()`);
+  const expression = `[...document.getElementsByTagName('*')].find(element=>!element.disabled&&(['BUTTON','A'].includes(element.tagName)||['button','tab'].includes(element.getAttribute('role')))&&element.textContent.trim()===${JSON.stringify(text)})`;
+  await client.until(`(()=>{const element=${expression};if(!element)return false;element.click();return true})()`, 10000);
+  await delay(300);
 };
 const screenshot = async (client, name) => {
   fs.writeFileSync(path.join(output, name), Buffer.from((await client.send('Page.captureScreenshot', { fromSurface: true, captureBeyondViewport: false, optimizeForSpeed: true })).data, 'base64'));
@@ -37,6 +38,7 @@ try {
   processHandle.stdout.on('data', data => { logs += data.toString(); });
   processHandle.on('error', error => { report.launchError = error.message; });
   host = await connect(hostPort, item => item.type === 'page' && /tauri\.localhost|tauri:/.test(item.url));
+  protectQaWindow(processHandle.pid);
   await host.evaluate("globalThis.qaClicks=[];document.addEventListener('click',event=>qaClicks.push({trusted:event.isTrusted,tag:event.target.tagName,text:event.target.textContent?.slice(0,70),path:location.pathname}),true)");
   await host.until("qa.role('dialog')?.textContent.includes('Your media, your way')");
   await screenshot(host, 'media-setup.png');
@@ -203,10 +205,10 @@ try {
   assert.equal(host.exceptions.length + video.exceptions.length, 0, 'Uncaught application error');
   video.close();
   await host.send('Runtime.evaluate', { expression: "void window.__TAURI_INTERNALS__.invoke('plugin:window|close',{label:'main'})" }).catch(() => {});
-  host.close();
   const closeDeadline = Date.now() + 15000;
   while (processHandle.exitCode === null && Date.now() < closeDeadline) await delay(100);
   assert.notEqual(processHandle.exitCode, null, 'The app did not close cleanly');
+  host.close();
   await delay(1500);
   try { process.kill(enginePid, 0); report.engineExitedBeforeReopen = false; } catch { report.engineExitedBeforeReopen = true; }
   assert.equal(report.engineExitedBeforeReopen, true, 'Video engine remained after closing the app');
@@ -219,6 +221,7 @@ try {
   processHandle.stderr.on('data', data => { logs += data.toString(); });
   processHandle.stdout.on('data', data => { logs += data.toString(); });
   host = await connect(hostPort, item => item.type === 'page' && /tauri\.localhost|tauri:/.test(item.url));
+  protectQaWindow(processHandle.pid);
   await host.until("document.title==='QA Studio'&&Boolean(qa.testId('search-box'))");
   await delay(1000);
   report.restoredPersonalization = await host.evaluate("({title:document.title,font:getComputedStyle(document.body).fontFamily,accent:getComputedStyle(document.documentElement).getPropertyValue('--primary'),setupVisible:qa.role('dialog')?.textContent.includes('Your media, your way')||false})");

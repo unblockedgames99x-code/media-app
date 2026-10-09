@@ -68,15 +68,8 @@ export const initPlayerApp = async (
   root: ReturnType<typeof import('react-dom/client').createRoot>,
 ) => {
   initLogStream();
-  let closing = false;
-  await getCurrentWindow().onCloseRequested(async (event) => {
-    if (closing) {
-      return;
-    }
-    event.preventDefault();
+  await getCurrentWindow().onCloseRequested(async () => {
     await flushPersonalizationPersistence();
-    closing = true;
-    await getCurrentWindow().close();
   });
 
   await initializeStores()

@@ -1693,8 +1693,11 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
             class="flex items-center gap-2"
           >
             <button
+              aria-label="Mute"
+              aria-pressed="false"
               class="inline-flex cursor-pointer items-center rounded-md whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 size-10 justify-center"
               data-headlessui-state=""
+              data-testid="player-mute-button"
               type="button"
             >
               <svg
@@ -1728,6 +1731,21 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
               <div
                 class="flex w-full flex-col gap-2"
               >
+                <div
+                  class="sr-only"
+                >
+                  <div
+                    class="flex w-full items-center justify-between text-sm"
+                  >
+                    <label
+                      class="text-foreground font-semibold"
+                      for=":r3:"
+                      id=":r3:-label"
+                    >
+                      Volume
+                    </label>
+                  </div>
+                </div>
                 <div
                   class="relative h-6 w-full overscroll-contain"
                 >
@@ -3656,8 +3674,11 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
             class="flex items-center gap-2"
           >
             <button
+              aria-label="Mute"
+              aria-pressed="false"
               class="inline-flex cursor-pointer items-center rounded-md whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 size-10 justify-center"
               data-headlessui-state=""
+              data-testid="player-mute-button"
               type="button"
             >
               <svg
@@ -3691,6 +3712,21 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
               <div
                 class="flex w-full flex-col gap-2"
               >
+                <div
+                  class="sr-only"
+                >
+                  <div
+                    class="flex w-full items-center justify-between text-sm"
+                  >
+                    <label
+                      class="text-foreground font-semibold"
+                      for=":r2h:"
+                      id=":r2h:-label"
+                    >
+                      Volume
+                    </label>
+                  </div>
+                </div>
                 <div
                   class="relative h-6 w-full overscroll-contain"
                 >

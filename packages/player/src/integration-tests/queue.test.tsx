@@ -1,9 +1,11 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 
 import { providersHost } from '../services/providersHost';
 import { usePlaylistStore } from '../stores/playlistStore';
 import { useQueueStore } from '../stores/queueStore';
 import { useSettingsStore } from '../stores/settingsStore';
+import { useSoundStore } from '../stores/soundStore';
+import { useStartupStore } from '../stores/startupStore';
 import { MetadataProviderBuilder } from '../test/builders/MetadataProviderBuilder';
 import {
   createMockCandidate,
@@ -37,6 +39,13 @@ const resetQueueStore = () => {
 describe('Queue', () => {
   beforeEach(() => {
     resetQueueStore();
+    useSoundStore.setState({
+      src: null,
+      status: 'stopped',
+      seek: 0,
+      duration: 0,
+    });
+    useStartupStore.setState({ isStartingUp: false });
 
     useSettingsStore.getState().setValue('playback.streamExpiryMs', 3600000);
     useSettingsStore.getState().setValue('playback.streamResolutionRetries', 3);
@@ -64,6 +73,34 @@ describe('Queue', () => {
     expect(
       await screen.findByText('Add tracks to start playing'),
     ).toBeInTheDocument();
+  });
+
+  it('Play all starts the first resolved track when the app has not played music yet', async () => {
+    await AlbumWrapper.mountDirectly();
+
+    await AlbumWrapper.playAll();
+
+    await waitFor(() => {
+      expect(useSoundStore.getState().src).not.toBeNull();
+      expect(useSoundStore.getState().status).toBe('playing');
+    });
+    expect(useQueueStore.getState().items.length).toBeGreaterThan(1);
+    expect(useQueueStore.getState().currentIndex).toBe(0);
+  });
+
+  it('Play now starts a resolved track from a stopped empty queue', async () => {
+    await AlbumWrapper.mountDirectly();
+
+    await AlbumWrapper.playTrackViaContextMenu('Countdown');
+
+    await waitFor(() => {
+      expect(useSoundStore.getState().src).not.toBeNull();
+      expect(useSoundStore.getState().status).toBe('playing');
+    });
+    expect(useQueueStore.getState().items).toHaveLength(1);
+    expect(useQueueStore.getState().getCurrentItem()?.track.title).toBe(
+      'Countdown',
+    );
   });
 
   it('should add album tracks to the queue', async () => {
