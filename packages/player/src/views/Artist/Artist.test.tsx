@@ -31,7 +31,15 @@ describe('Artist view', () => {
 
     it('(Snapshot) renders the artist view', async () => {
       const component = await ArtistWrapper.mount('The Beatles');
-      expect(component.asFragment()).toMatchSnapshot();
+      expect(ArtistWrapper.volume.label).toHaveAttribute(
+        'for',
+        ArtistWrapper.volume.input.id,
+      );
+      expect(ArtistWrapper.volume.input).toHaveAttribute(
+        'aria-labelledby',
+        ArtistWrapper.volume.label.id,
+      );
+      expect(ArtistWrapper.snapshot(component)).toMatchSnapshot();
     });
 
     it('shows loading states for bio, top tracks, related artists, and albums', async () => {
@@ -106,7 +114,15 @@ describe('Artist view', () => {
 
     it('(Snapshot) renders the artist view with social stats', async () => {
       const component = await ArtistWrapper.mount('Deadmau5');
-      expect(component.asFragment()).toMatchSnapshot();
+      expect(ArtistWrapper.volume.label).toHaveAttribute(
+        'for',
+        ArtistWrapper.volume.input.id,
+      );
+      expect(ArtistWrapper.volume.input).toHaveAttribute(
+        'aria-labelledby',
+        ArtistWrapper.volume.label.id,
+      );
+      expect(ArtistWrapper.snapshot(component)).toMatchSnapshot();
     });
 
     it('shows loading states for social stats, top tracks, playlists, and related artists', async () => {

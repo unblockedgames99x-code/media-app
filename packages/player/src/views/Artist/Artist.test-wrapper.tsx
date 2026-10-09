@@ -6,6 +6,39 @@ import { SearchWrapper } from '../Search/Search.test-wrapper';
 const user = userEvent.setup();
 
 export const ArtistWrapper = {
+  snapshot(component: RenderResult) {
+    const fragment = component.asFragment();
+    const generatedIds = new Map<string, string>();
+    const elements = document.createTreeWalker(
+      fragment,
+      NodeFilter.SHOW_ELEMENT,
+    );
+    while (elements.nextNode()) {
+      const element = elements.currentNode as Element;
+      for (const attribute of element.attributes) {
+        attribute.value = attribute.value.replace(
+          /:r[0-9a-z]+:/g,
+          (generatedId) => {
+            if (!generatedIds.has(generatedId)) {
+              generatedIds.set(generatedId, `:generated-${generatedIds.size}:`);
+            }
+            return generatedIds.get(generatedId)!;
+          },
+        );
+      }
+    }
+    return fragment;
+  },
+
+  volume: {
+    get input() {
+      return screen.getByRole('slider', { name: 'Volume' });
+    },
+    get label() {
+      return screen.getByText('Volume');
+    },
+  },
+
   async mount(header: string): Promise<RenderResult> {
     const component = await SearchWrapper.mount('test artist');
     const artistLink = await screen.findByText('Test Artist');
