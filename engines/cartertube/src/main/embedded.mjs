@@ -43,6 +43,27 @@ export function toggleWindowFullscreen (window, embeddedWindowId, isTrusted) {
   }
 }
 
+export function bindEmbeddedInputFocus (window, isTrusted) {
+  const contents = window.webContents
+  let stopped = false
+  const focusInput = (_event, input) => {
+    if (input.type !== 'mouseDown' || window.isDestroyed() || !window.isVisible() ||
+        contents.isDestroyed() || !isTrusted(contents.getURL())) return
+    contents.focus()
+  }
+  const stop = () => {
+    if (stopped) return
+    stopped = true
+    contents.off('before-mouse-event', focusInput)
+    contents.off('destroyed', stop)
+    window.off('closed', stop)
+  }
+  contents.on('before-mouse-event', focusInput)
+  contents.once('destroyed', stop)
+  window.once('closed', stop)
+  return stop
+}
+
 export function createVisibilityController (window, pause, focus = false) {
   let revision = 0
   let pendingPause = Promise.resolve()

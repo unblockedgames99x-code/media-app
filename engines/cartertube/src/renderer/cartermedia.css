@@ -57,10 +57,12 @@
   --card-bg-color: var(--cm-muted);
   --secondary-card-bg-color: color-mix(in srgb, var(--cm-muted) 85%, var(--cm-primary));
   --search-bar-color: var(--cm-input);
-  --primary-input-color: var(--cm-input-foreground);
-  --side-nav-color: var(--cm-muted);
-  --side-nav-hover-color: var(--cm-muted);
+  --primary-input-color: var(--cm-input);
+  --side-nav-color: var(--cm-sidebar-left, var(--cm-muted));
+  --side-nav-hover-color: var(--cm-sidebar-left, var(--cm-muted));
+  --side-nav-hover-text-color: var(--cm-sidebar-left-foreground, var(--cm-muted-foreground));
   --side-nav-active-color: var(--cm-primary);
+  --side-nav-active-text-color: var(--cm-primary-foreground);
   --primary-color: var(--cm-primary);
   --primary-color-hover: color-mix(in srgb, var(--cm-primary) 90%, var(--cm-foreground));
   --primary-color-active: var(--cm-primary);
@@ -75,6 +77,7 @@
   --accent-color-opacity4: color-mix(in srgb, var(--cm-primary) 24%, transparent);
   --scrollbar-color: var(--cm-border);
   --scrollbar-color-hover: var(--cm-primary);
+  --scrollbar-text-color-hover: var(--cm-primary-foreground);
   --primary-shadow-color: transparent;
 
   color: var(--cm-foreground);
@@ -122,6 +125,52 @@
   font-family: var(--cm-font-family-heading);
 }
 
+.carterMediaEmbedded:root .topNav .personalIdentity.logo {
+  box-sizing: border-box;
+  block-size: 42px;
+  padding-block: 6px;
+  padding-inline: 10px;
+  border: max(1px, var(--cm-border-width)) solid transparent;
+  border-radius: var(--cm-radius-md);
+  background-color: transparent;
+  color: var(--cm-topbar-foreground, var(--cm-foreground));
+  line-height: 1.2;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.carterMediaEmbedded:root .topNav .personalIdentity.logo:hover {
+  border-color: var(--cm-border);
+  background-color: color-mix(in srgb, var(--cm-primary) 10%, var(--cm-topbar, var(--cm-background)));
+  color: var(--cm-topbar-foreground, var(--cm-foreground));
+  box-shadow: var(--cm-shadow-x, 2px) var(--cm-shadow-y, 2px) 0 color-mix(in srgb, var(--cm-border) 65%, transparent);
+  transform: translateY(var(--cm-hover-lift, -1px));
+}
+
+.carterMediaEmbedded:root .topNav .personalIdentity.logo:active {
+  border-color: var(--cm-border);
+  background-color: color-mix(in srgb, var(--cm-primary) 16%, var(--cm-topbar, var(--cm-background)));
+  box-shadow: calc(var(--cm-shadow-x, 2px) / 2) calc(var(--cm-shadow-y, 2px) / 2) 0 color-mix(in srgb, var(--cm-border) 65%, transparent);
+  transform: none;
+}
+
+.carterMediaEmbedded:root .topNav .personalIdentity.logo:focus-visible {
+  outline: 2px solid var(--cm-ring, var(--cm-border));
+  outline-offset: 2px;
+}
+
+.carterMediaEmbedded:is([data-motion='none'], [data-motion='reduced']) .personalIdentity {
+  --cm-hover-lift: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carterMediaEmbedded:root .topNav .personalIdentity.logo {
+    --cm-hover-lift: 0;
+
+    transition: none;
+  }
+}
+
 .carterMediaEmbedded .app button,
 .carterMediaEmbedded .app input,
 .carterMediaEmbedded .app select,
@@ -164,11 +213,6 @@
   display: none !important;
 }
 
-.carterMediaWorkspace .app .sideNav,
-.carterMediaWorkspace .app .menuButton {
-  display: block;
-}
-
 .carterMediaWorkspace .app .workspaceReturn {
   padding-block: 8px;
   padding-inline: 16px;
@@ -199,8 +243,24 @@
 }
 
 .carterMediaEmbedded .app .topNav {
+  --primary-text-color: var(--cm-topbar-foreground, var(--cm-foreground));
+  --secondary-text-color: var(--cm-topbar-foreground, var(--cm-foreground));
+
   border-block-end: var(--cm-border-width) solid var(--cm-border);
-  background: var(--cm-background);
+  background: var(--cm-topbar, var(--cm-background));
+  color: var(--cm-topbar-foreground, var(--cm-foreground));
+}
+
+.carterMediaEmbedded .app .sideNav {
+  color: var(--cm-sidebar-left-foreground, var(--cm-muted-foreground));
+}
+
+.carterMediaEmbedded .app .ft-card {
+  --primary-text-color: var(--cm-muted-foreground);
+  --secondary-text-color: var(--cm-muted-foreground);
+  --title-color: var(--cm-muted-foreground);
+
+  color: var(--cm-muted-foreground);
 }
 
 .carterMediaEmbedded .topNav .ft-input,
@@ -213,8 +273,38 @@
   border-radius: var(--cm-radius-md);
 }
 
+.carterMediaEmbedded:root .ft-input-component .ft-input,
+.carterMediaEmbedded:root .ft-input-component.forceTextColor .ft-input {
+  background-color: var(--cm-input);
+  color: var(--cm-input-foreground);
+}
+
+.carterMediaEmbedded:root .ft-input-component ::placeholder {
+  color: var(--cm-input-foreground);
+  opacity: 0.8;
+}
+
+.carterMediaEmbedded:root .ft-input-component .list {
+  color: var(--cm-input-foreground);
+}
+
+.carterMediaEmbedded:root .ft-input-component .clearInputTextButton,
+.carterMediaEmbedded:root .ft-input-component .inputAction,
+.carterMediaEmbedded:root .ft-input-component.forceTextColor .clearInputTextButton,
+.carterMediaEmbedded:root .ft-input-component.forceTextColor .inputAction {
+  color: var(--cm-input-foreground);
+}
+
+.carterMediaEmbedded:root .ft-input-component .clearInputTextButton:hover,
+.carterMediaEmbedded:root .ft-input-component .clearInputTextButton:active,
+.carterMediaEmbedded:root .ft-input-component .inputAction.enabled:hover,
+.carterMediaEmbedded:root .ft-input-component .inputAction.enabled:active {
+  background-color: var(--cm-primary);
+  color: var(--cm-primary-foreground);
+}
+
 .carterMediaEmbedded .app .thumbnailLink {
-  border-radius: var(--cm-radius-md);
+  border-radius: var(--cm-artwork-radius, var(--cm-radius-md));
 }
 
 .carterMediaEmbedded .app h1,
@@ -241,5 +331,10 @@
 
 .carterMediaEmbedded[data-density='spacious'] .app .ft-card {
   padding: 26px;
+}
+
+.carterMediaEmbedded.carterMediaWorkspace .app .sideNav,
+.carterMediaEmbedded.carterMediaWorkspace .app .menuButton {
+  display: block;
 }
 

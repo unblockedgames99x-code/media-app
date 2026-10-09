@@ -106,22 +106,15 @@ export const ConnectedVideoNavigation: FC = () => {
       {SECTIONS.filter(
         ({ label }) => !hiddenNavigation[label as keyof HiddenNavigation],
       ).map(({ path, label, Icon }) => (
-        <button
-          type="button"
+        <SidebarNavigationItem
           key={path}
-          aria-label={t(`navigation.${label}`)}
-          aria-pressed={isSectionSelected(path, selectedPath)}
-          className="w-full cursor-pointer text-left"
+          icon={<Icon />}
+          label={t(`navigation.${label}`)}
+          isSelected={isSectionSelected(path, selectedPath)}
           onClick={() => {
             void navigate(path);
           }}
-        >
-          <SidebarNavigationItem
-            icon={<Icon />}
-            label={t(`navigation.${label}`)}
-            isSelected={isSectionSelected(path, selectedPath)}
-          />
-        </button>
+        />
       ))}
     </>
   );

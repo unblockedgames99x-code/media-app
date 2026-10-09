@@ -105,6 +105,22 @@ export const VideosWrapper = {
     ).length;
   },
 
+  setThemeVariables(variables: Record<string, string>) {
+    act(() => {
+      for (const [key, value] of Object.entries(variables)) {
+        document.documentElement.style.setProperty(key, value);
+      }
+    });
+  },
+
+  async themeApplied(variables: Record<string, string>) {
+    await waitFor(() =>
+      expect(nativeInvoke).toHaveBeenCalledWith('video_engine_theme', {
+        variables: expect.objectContaining(variables),
+      }),
+    );
+  },
+
   async crashEngine() {
     const subscription = vi
       .mocked(listen)

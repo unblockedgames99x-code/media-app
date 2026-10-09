@@ -172,7 +172,7 @@ const RootComponent = () => {
                         label={t('music')}
                       />
                       {!leftSidebar.isCollapsed && (
-                        <p className="text-muted-foreground mt-2 px-2 text-xs font-bold uppercase">
+                        <p className="mt-2 px-2 text-xs font-bold uppercase">
                           {t('videos')}
                         </p>
                       )}

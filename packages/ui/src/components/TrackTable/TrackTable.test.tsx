@@ -102,6 +102,19 @@ describe('TrackTable', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
+  it('(Snapshot) PlayableRows', async () => {
+    const { asFragment, findByText } = render(
+      <TrackTable
+        tracks={makeTracks(3)}
+        labels={labels}
+        actions={{ onPlayNow: vi.fn() }}
+        display={{ displayAlbum: true }}
+      />,
+    );
+    await findByText('Track 1');
+    expect(asFragment()).toMatchSnapshot();
+  });
+
   it('(Snapshot) Filtering', async () => {
     const { asFragment, findByPlaceholderText } = render(
       <TrackTable

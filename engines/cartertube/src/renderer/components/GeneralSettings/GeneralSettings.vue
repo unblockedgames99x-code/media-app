@@ -5,6 +5,7 @@
     <div class="switchColumnGrid">
       <div class="switchColumn">
         <FtToggleSwitch
+          v-if="!isManagedWorkspace"
           :label="t('Settings.General Settings.Check for Updates')"
           :default-value="checkForUpdates"
           :compact="true"
@@ -34,7 +35,7 @@
           @change="updateEnableSearchSuggestions"
         />
         <FtToggleSwitch
-          v-if="USING_ELECTRON"
+          v-if="USING_ELECTRON && !isManagedWorkspace"
           :label="t('Settings.General Settings.Open Deep Links In New Window')"
           :default-value="openDeepLinksInNewWindow"
           :compact="true"
@@ -42,7 +43,7 @@
           @change="updateOpenDeepLinksInNewWindow"
         />
         <FtToggleSwitch
-          v-if="!IS_MAC && !isLinuxWayland && USING_ELECTRON"
+          v-if="!IS_MAC && !isLinuxWayland && USING_ELECTRON && !isManagedWorkspace"
           :label="t('Settings.General Settings.Minimize to system tray')"
           :default-value="hideToTrayOnMinimize"
           :compact="true"
@@ -183,6 +184,7 @@ import store from '../../store/index'
 import allLocales from '../../../../static/locales/activeLocales.json'
 import { randomArrayItem, showToast } from '../../helpers/utils'
 import { translateWindowTitle } from '../../helpers/strings'
+import { useManagedWorkspace } from '../../composables/managedWorkspace.mjs'
 
 const currentInvidiousInstanceInputRef = useTemplateRef('currentInvidiousInstanceInput')
 
@@ -192,6 +194,7 @@ const IS_MAC = process.platform === 'darwin'
 
 const { t } = useI18n()
 const router = useRouter()
+const { isManagedWorkspace } = useManagedWorkspace()
 
 // The 'minimize' event doesn't fire on wayland
 // https://github.com/electron/electron/issues/51766

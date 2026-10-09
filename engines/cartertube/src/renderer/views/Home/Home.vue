@@ -1,24 +1,7 @@
 <template>
   <main class="homePage">
     <section class="homeIntro">
-      <div>
-        <p class="eyebrow">
-          {{ t('CarterTubeHome.Your Daily Mix') }}
-        </p>
-        <h1>{{ t('CarterTubeHome.Find your next favorite') }}</h1>
-        <p class="introDescription">
-          {{ t('CarterTubeHome.Personalized locally') }}
-        </p>
-      </div>
-      <button
-        class="refreshButton"
-        type="button"
-        :disabled="isLoading"
-        @click="refreshFeed(true)"
-      >
-        <FontAwesomeIcon :icon="['fas', 'sync']" />
-        {{ t('CarterTubeHome.Refresh') }}
-      </button>
+      <h1>{{ t('CarterTubeHome.Welcome') }}</h1>
     </section>
 
     <div
@@ -46,17 +29,28 @@
     >
       <div class="feedHeading">
         <h2>{{ feedTitle }}</h2>
-        <span
-          v-if="isLoading"
-          class="loadingStatus"
-          role="status"
-        >{{ t('CarterTubeHome.Finding videos') }}</span>
-        <span
-          v-else-if="shownResults.length"
-          class="feedCount"
-        >
-          {{ t('CarterTubeHome.Video Count', { count: shownResults.length }) }}
-        </span>
+        <div class="feedActions">
+          <span
+            v-if="isLoading"
+            class="loadingStatus"
+            role="status"
+          >{{ t('CarterTubeHome.Finding videos') }}</span>
+          <span
+            v-else-if="shownResults.length"
+            class="feedCount"
+          >
+            {{ t('CarterTubeHome.Video Count', { count: shownResults.length }) }}
+          </span>
+          <button
+            class="refreshButton"
+            type="button"
+            :disabled="isLoading"
+            @click="refreshFeed(true)"
+          >
+            <FontAwesomeIcon :icon="['fas', 'sync']" />
+            {{ t('CarterTubeHome.Refresh') }}
+          </button>
+        </div>
       </div>
       <p
         v-if="hasErrors"

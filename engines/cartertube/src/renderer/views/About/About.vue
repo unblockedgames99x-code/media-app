@@ -45,7 +45,6 @@ import { useI18n } from 'vue-i18n'
 import FtCard from '../../components/ft-card/ft-card.vue'
 import { vSaferHtml } from '../../directives/vSaferHtml.js'
 
-import { ABOUT_BITCOIN_ADDRESS } from '../../../constants'
 import packageDetails from '../../../../package.json'
 
 const { t } = useI18n()
@@ -73,8 +72,7 @@ const chunks = computed(() => [
     title: t('About.Help'),
     content: [
       `<a href="https://docs.freetubeapp.io/">${t('About.FreeTube Wiki')}</a>`,
-      `<a href="https://docs.freetubeapp.io/faq/">${t('About.FAQ')}</a>`,
-      `<a href="https://github.com/FreeTubeApp/FreeTube/discussions/">${t('About.Discussions')}</a>`
+      `<a href="https://docs.freetubeapp.io/faq/">${t('About.FAQ')}</a>`
     ].join(' / '),
   },
   {
@@ -86,41 +84,11 @@ const chunks = computed(() => [
     ].join('<br>'),
   },
   {
-    icon: ['fas', 'globe'],
-    title: t('About.Website'),
-    content: '<a href="https://freetubeapp.io/">https://freetubeapp.io/</a>',
-  },
-  {
-    icon: ['fab', 'mastodon'],
-    title: t('About.Mastodon'),
-    content: '<a href="https://fosstodon.org/@FreeTube">@FreeTube@fosstodon.org</a>',
-  },
-  {
-    icon: ['fab', 'matrix'],
-    title: t('About.Chat on Matrix'),
-    content: [
-      '<a href="https://matrix.to/#/#freetubeapp:matrix.org">#freetubeapp:matrix.org</a>',
-      t('About.Please read the {roomRulesLink}', {
-        roomRulesLink: `<a href="https://docs.freetubeapp.io/community/matrix/">${t('About.room rules')}</a>`,
-      }),
-    ].join('<br>'),
-  },
-  {
-    icon: ['fas', 'language'],
-    title: t('About.Translate'),
-    content: '<a href="https://hosted.weblate.org/engage/free-tube/">https://hosted.weblate.org/engage/free-tube/</a>',
-  },
-  {
     icon: ['fas', 'users'],
     title: t('About.Credits'),
     content: t('About.FreeTube is made possible by {creditsPageLink}', {
       creditsPageLink: `<a href="https://docs.freetubeapp.io/credits/">${t('About.these people and projects')}</a>`,
     }),
-  },
-  {
-    icon: ['fab', 'bitcoin'],
-    title: `${t('About.Donate')} - BTC`,
-    content: `<a href="bitcoin:${ABOUT_BITCOIN_ADDRESS}">${ABOUT_BITCOIN_ADDRESS}</a>`
   }
 ])
 </script>

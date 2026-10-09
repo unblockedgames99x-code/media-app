@@ -40,6 +40,18 @@ export const ConnectedSettingsModalWrapper = {
     return navigationSection('app');
   },
 
+  get navigation() {
+    return within(screen.getByRole('dialog')).getByRole('navigation');
+  },
+
+  get navigationButtonCount() {
+    return within(this.navigation).getAllByRole('button').length;
+  },
+
+  get sourceAttribution() {
+    return screen.getByTestId('cartermedia-build-info');
+  },
+
   category(id: string) {
     return navigationItem('general', id);
   },

@@ -4,6 +4,8 @@ Choose your own name, fonts, colors, layout, and sound preferences in Settings. 
 
 New profiles start with Spotify for music information and YouTube for streaming. The light/dark toggle follows your selected colors and saves your choice. The miniplayer uses your chosen name, logo, fonts, and theme, and updates when you change them.
 
+The video home now matches the Music interface, with themed bordered cards and the centered heading **Goodtube - Noads No sponsors No distractions**. Sidebars and your custom header identity share polished hover outlines. Duplicate appearance settings and upstream promotional buttons are removed. Clicking a song row starts playback, and clicking Windows video inputs now focuses their page for typing.
+
 ## Choose a download
 
 | Your computer | File |

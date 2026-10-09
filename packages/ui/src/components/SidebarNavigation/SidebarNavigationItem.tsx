@@ -1,9 +1,11 @@
 import { Link } from '@tanstack/react-router';
-import { FC, ReactNode } from 'react';
+import { FC, KeyboardEvent, ReactNode } from 'react';
 
 import { cn } from '../../utils';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { useSidebarCompact } from './SidebarCompactContext';
+
+import './SidebarNavigationItem.css';
 
 type SidebarNavigationItemProps = {
   icon: ReactNode;
@@ -19,7 +21,11 @@ const MaybeNavLink: FC<{
   children: (isSelected: boolean) => ReactNode;
 }> = ({ to, isSelected = false, children }) => {
   if (to) {
-    return <Link to={to}>{({ isActive }) => children(isActive)}</Link>;
+    return (
+      <Link to={to} className="sidebar-navigation-link">
+        {({ isActive }) => children(isActive)}
+      </Link>
+    );
   }
   return <>{children(isSelected)}</>;
 };
@@ -32,17 +38,30 @@ export const SidebarNavigationItem: FC<SidebarNavigationItemProps> = ({
   onClick,
 }) => {
   const isCompact = useSidebarCompact();
+  const ItemElement = onClick ? 'button' : 'div';
 
   return (
     <MaybeNavLink to={to} isSelected={isSelected}>
       {(active) => (
         <Tooltip content={label} side="right" disabled={!isCompact}>
-          <div
-            role={onClick ? 'button' : undefined}
+          <ItemElement
+            type={onClick ? 'button' : undefined}
             onClick={onClick}
+            onKeyDown={
+              onClick
+                ? (event: KeyboardEvent<HTMLElement>) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.stopPropagation();
+                    }
+                  }
+                : undefined
+            }
+            aria-label={onClick ? label : undefined}
+            aria-pressed={onClick ? active : undefined}
+            data-selected={active}
             data-testid="sidebar-navigation-item"
             className={cn(
-              'flex w-full items-center overflow-hidden rounded-md border-(length:--border-width)',
+              'sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left',
               {
                 'cursor-pointer': onClick,
                 'surface-primary border-border font-bold': active,
@@ -64,7 +83,7 @@ export const SidebarNavigationItem: FC<SidebarNavigationItemProps> = ({
             >
               {label}
             </span>
-          </div>
+          </ItemElement>
         </Tooltip>
       )}
     </MaybeNavLink>

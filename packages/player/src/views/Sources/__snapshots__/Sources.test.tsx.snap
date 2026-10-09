@@ -228,11 +228,13 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
               class="flex flex-1 flex-col gap-2 overflow-y-auto"
             >
               <a
+                class="sidebar-navigation-link"
                 href="/dashboard"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -268,11 +270,13 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/videos"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -330,11 +334,13 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/favorites/albums"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -374,11 +380,13 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/favorites/tracks"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -421,11 +429,13 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/favorites/artists"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -463,11 +473,13 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/playlists"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -512,11 +524,13 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/history"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -555,11 +569,13 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/lyrics"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -601,13 +617,14 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
               </a>
               <a
                 aria-current="page"
-                class="active"
+                class="sidebar-navigation-link active"
                 data-status="active"
                 href="/sources"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) surface-primary border-border font-bold"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left surface-primary border-border font-bold"
+                    data-selected="true"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -659,10 +676,13 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
               </a>
             </div>
             <div>
-              <div
-                class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) cursor-pointer border-transparent"
+              <button
+                aria-label="Preferences"
+                aria-pressed="false"
+                class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left cursor-pointer border-transparent"
+                data-selected="false"
                 data-testid="sidebar-navigation-item"
-                role="button"
+                type="button"
               >
                 <div
                   class="flex size-8 shrink-0 items-center justify-center"
@@ -695,7 +715,7 @@ exports[`Sources view > (Snapshot) renders the view 1`] = `
                 >
                   Preferences
                 </span>
-              </div>
+              </button>
             </div>
           </div>
         </div>

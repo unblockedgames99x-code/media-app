@@ -79,6 +79,7 @@
       <RouterLink
         v-if="!hideHeaderLogo && (personalIdentity.displayName || personalIdentity.logoDataUrl)"
         class="logo personalIdentity"
+        :aria-label="personalIdentity.displayName || t('Go to page', { page: t('CarterTubeHome.For you') })"
         :to="'/' + store.getters.getLandingPage"
       >
         <img

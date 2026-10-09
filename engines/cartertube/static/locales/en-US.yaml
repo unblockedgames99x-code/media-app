@@ -330,7 +330,7 @@ Settings:
     Disable Smooth Scrolling: Disable Smooth Scrolling
     UI Scale: UI Scale
     Hide Side Bar Labels: Hide Side Bar Labels
-    Hide FreeTube Header Logo: Hide FreeTube Header Logo
+    Hide FreeTube Header Logo: Hide Header Identity
     Base Theme:
       Base Theme: Base Theme
       Black: Black
@@ -1259,9 +1259,7 @@ KeyboardShortcutPrompt:
   Skip to Previous Video: Skip to the previous video in a playlist
 
 CarterTubeHome:
-  Your Daily Mix: Your daily mix
-  Find your next favorite: Find your next favorite.
-  Personalized locally: Picked from your watch history and channels. No account needed.
+  Welcome: Goodtube - Noads No sponsors No distractions
   Refresh: Refresh
   Choose your feed: Choose your feed
   For you: For you

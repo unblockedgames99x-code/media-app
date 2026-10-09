@@ -22,7 +22,7 @@
       :inert="isAnyPromptOpen"
     >
       <div
-        v-if="showUpdatesBanner"
+        v-if="showUpdatesBanner && !isManagedWorkspace"
         class="banner-wrapper"
       >
         <FtNotificationBanner
@@ -123,6 +123,7 @@ import FtCreatePlaylistPrompt from './components/FtCreatePlaylistPrompt/FtCreate
 import FtKeyboardShortcutPrompt from './components/FtKeyboardShortcutPrompt/FtKeyboardShortcutPrompt.vue'
 import FtSearchFilters from './components/FtSearchFilters/FtSearchFilters.vue'
 import { vSaferHtml } from './directives/vSaferHtml.js'
+import { useManagedWorkspace } from './composables/managedWorkspace.mjs'
 
 import store from './store/index'
 import { navigationVisibility } from '../shared/embedded.mjs'
@@ -137,6 +138,7 @@ import { getClipInvidious } from './helpers/api/invidious.js'
 const route = useRoute()
 const router = useRouter()
 const { locale, t } = useI18n()
+const { isManagedWorkspace } = useManagedWorkspace()
 
 /** @type {import('vue').ComputedRef<'local' | 'invidious'>} */
 const backendPreference = computed(() => store.getters.getBackendPreference)
@@ -278,13 +280,15 @@ const updateBannerMessage = computed(() => {
 })
 
 async function checkForNewUpdates() {
-  if (!checkForUpdates.value) {
+  if (isManagedWorkspace.value || !checkForUpdates.value) {
     return
   }
 
   try {
     const response = await fetch('https://api.github.com/repos/freetubeapp/freetube/releases?per_page=1')
     const json = await response.json()
+
+    if (isManagedWorkspace.value) return
 
     const tagName = json[0].tag_name
     const versionNumber = tagName.replace('v', '').replace('-beta', '')

@@ -196,7 +196,49 @@ try {
     assert.equal(inspection.visible, true);
     assert.equal(inspection.hwnd !== null, true);
     report.nativeEmbedding = true;
+
+    stage('video-keyboard-focus');
+    const searchInput = "qa.byClass('searchInput')[0]?.getElementsByTagName('input')[0]";
+    await video.until(`(()=>{const input=${searchInput};if(!input||input.disabled)return false;const bounds=input.getBoundingClientRect();return bounds.width>0&&bounds.height>0})()`);
+    const focusState = `(()=>{const input=${searchInput};return {active:document.activeElement===input,documentFocused:document.hasFocus(),value:input.value}})()`;
+    const inputBounds = await video.evaluate(`(()=>{const bounds=(${searchInput}).getBoundingClientRect();return {x:bounds.x+bounds.width/2,y:bounds.y+bounds.height/2,width:bounds.width,height:bounds.height}})()`);
+    report.videoInputFocus = {
+      transport: 'Chromium DevTools mouse and keyboard events',
+      bounds: inputBounds,
+      before: await video.evaluate(focusState),
+    };
+    assert.equal(report.videoInputFocus.before.value, '', 'The fresh video search field is not empty.');
+    const inputPoint = { x: inputBounds.x, y: inputBounds.y };
+    await video.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...inputPoint });
+    await video.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...inputPoint, button: 'left', clickCount: 1 });
+    await video.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...inputPoint, button: 'left', clickCount: 1 });
+    report.videoInputFocus.afterClick = await video.evaluate(focusState);
+    await video.until(`document.activeElement===(${searchInput})&&document.hasFocus()`, 5000);
+    report.videoInputFocus.afterClick = await video.evaluate(focusState);
+    assert.equal(report.videoInputFocus.afterClick.active, true, 'Clicking the video search field did not activate it.');
+    assert.equal(report.videoInputFocus.afterClick.documentFocused, true, 'The visible embedded video document did not gain keyboard focus.');
+    const typedText = 'focus';
+    for (const character of typedText) {
+      const key = { key: character, code: `Key${character.toUpperCase()}`, windowsVirtualKeyCode: character.toUpperCase().charCodeAt(0) };
+      await video.send('Input.dispatchKeyEvent', { type: 'keyDown', ...key, text: character, unmodifiedText: character });
+      await video.send('Input.dispatchKeyEvent', { type: 'keyUp', ...key });
+    }
+    report.videoInputFocus.afterKeys = await video.evaluate(focusState);
+    assert.equal(report.videoInputFocus.afterKeys.value, typedText, 'Video search did not receive dispatched keyboard input.');
+    assert.equal(report.videoInputFocus.afterKeys.active, true, 'The video search field lost focus while typing.');
+    assert.equal(report.videoInputFocus.afterKeys.documentFocused, true, 'The embedded video document lost keyboard focus while typing.');
+    report.videoInputFocus.passed = true;
   }
+
+  stage('video-home-appearance');
+  await video.evaluate("location.hash='#/home'");
+  await video.until("qa.byClass('homeIntro')[0]?.getElementsByTagName('h1')[0]?.textContent.trim()==='Goodtube - Noads No sponsors No distractions'");
+  report.videoHome = await video.evaluate("(()=>{const intro=qa.byClass('homeIntro')[0];return {heading:intro.getElementsByTagName('h1')[0].textContent.trim(),textAlign:getComputedStyle(intro).textAlign,filters:qa.byClass('feedTab').map(button=>button.textContent.trim()),refresh:qa.byClass('refreshButton')[0]?.textContent.trim()}})()");
+  assert.equal(report.videoHome.textAlign, 'center', 'The video home heading is not centered.');
+  assert.equal(report.videoHome.filters.length, 4, 'The video feed filters are missing.');
+  assert.equal(report.videoHome.refresh, 'Refresh', 'The feed refresh control is missing.');
+  const homeScreenshot = await video.send('Page.captureScreenshot', { format: 'png' });
+  await writeFile(path.join(output, 'runtime.home.png'), Buffer.from(homeScreenshot.data, 'base64'));
 
   stage('close-host-and-video');
   video.close();
@@ -212,7 +254,7 @@ try {
   report.childExitedWithHost = true;
   report.passed = true;
   stage('complete');
-  process.stdout.write(`Packaged ${platform} ${values.arch} runtime passed: video startup, workspace navigation, ${platform === 'windows' ? 'native embedding' : 'Music return and Videos reopen'}, child cleanup${platform === 'linux' ? ', renderer sandbox' : ''}.\n`);
+  process.stdout.write(`Packaged ${platform} ${values.arch} runtime passed: video startup, workspace navigation, ${platform === 'windows' ? 'native embedding and Chromium keyboard input' : 'Music return and Videos reopen'}, child cleanup${platform === 'linux' ? ', renderer sandbox' : ''}.\n`);
 } catch (error) {
   report.passed = false;
   report.error = launchError?.message ?? error.message;

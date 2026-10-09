@@ -54,12 +54,29 @@ export const AppWrapper = {
     return screen.getByTestId('search-box');
   },
 
+  get videoNavigationHeading() {
+    return within(screen.getByTestId('sidebar-left')).getByText('Videos');
+  },
+
+  useSidebarColors(foreground: string, contentMuted: string) {
+    const style = document.createElement('style');
+    style.textContent = `.surface-sidebar-left { color: ${foreground}; } .text-muted-foreground { color: ${contentMuted}; }`;
+    document.head.append(style);
+    return () => style.remove();
+  },
+
   async videosOpened() {
     return screen.findByRole('region', { name: 'Videos' });
   },
 
   async musicOpened() {
     return screen.findByTestId('search-box');
+  },
+
+  async openPreferencesWithKeyboard() {
+    screen.getByRole('button', { name: 'Preferences' }).focus();
+    await userEvent.keyboard(' ');
+    return screen.findByRole('heading', { name: 'General', level: 1 });
   },
 
   async searchMusic(query: string) {

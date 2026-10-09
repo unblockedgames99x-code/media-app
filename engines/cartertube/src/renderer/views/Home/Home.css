@@ -8,52 +8,36 @@
   padding-inline: 34px;
 }
 
-.homeIntro,
 .feedHeading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  margin-block-end: 22px;
 }
 
 .homeIntro {
-  padding-block: 12px 26px;
-}
-
-.homeIntro > div {
-  min-inline-size: 0;
-}
-
-.eyebrow {
-  color: var(--primary-color);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  margin-block: 0 12px;
+  padding-block: 28px 32px;
+  text-align: center;
 }
 
 h1 {
-  font-size: clamp(26px, 3vw, 40px);
+  font-size: clamp(23px, 2.5vw, 36px);
   font-weight: 750;
   letter-spacing: -0.045em;
-  line-height: 1.15;
-  margin-block: 0 12px;
-}
-
-.introDescription {
+  line-height: 1.3;
+  text-wrap: balance;
   margin: 0;
-  color: var(--secondary-text-color);
-  font-size: 14px;
-  line-height: 1.6;
 }
 
 .refreshButton,
 .feedTab {
-  color: var(--primary-text-color);
-  background: var(--card-bg-color);
-  border: 1px solid var(--side-nav-hover-color);
-  border-radius: 12px;
+  box-sizing: border-box;
+  color: var(--cm-muted-foreground, var(--primary-text-color));
+  background: var(--cm-muted, var(--card-bg-color));
+  border: max(1px, var(--cm-border-width, 1px)) solid var(--cm-border, var(--primary-text-color));
+  border-radius: var(--cm-radius-md, 8px);
+  box-shadow: var(--cm-shadow-x, 2px) var(--cm-shadow-y, 2px) 0 var(--cm-border, var(--primary-text-color));
   font: inherit;
   cursor: pointer;
   display: inline-flex;
@@ -63,7 +47,7 @@ h1 {
   padding-block: 11px;
   padding-inline: 16px;
   white-space: nowrap;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
 .refreshButton {
@@ -78,6 +62,7 @@ h1 {
 .feedTabs {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   padding-block: 4px 28px;
   overflow-x: auto;
@@ -86,7 +71,6 @@ h1 {
 }
 
 .feedTab {
-  border-radius: 999px;
   padding-block: 10px;
   padding-inline: 18px;
   font-size: 13px;
@@ -95,12 +79,7 @@ h1 {
 
 .feedTab.active {
   background: var(--primary-color);
-  color: #fff;
-  border-color: var(--primary-color);
-}
-
-.feedHeading {
-  margin-block-end: 22px;
+  color: var(--cm-primary-foreground, var(--text-with-main-color));
 }
 
 .feedHeading h2 {
@@ -108,6 +87,52 @@ h1 {
   font-weight: 700;
   letter-spacing: -0.025em;
   margin: 0;
+}
+
+.feedActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.feedSection > :deep(.grid) {
+  gap: 20px;
+}
+
+.feedSection :deep(.ft-list-video.grid) {
+  position: relative;
+  padding: 8px;
+  border: var(--cm-border-width, 1px) solid var(--cm-border, var(--side-nav-hover-color));
+  border-radius: var(--cm-radius-md, 8px);
+  background: var(--cm-card, var(--card-bg-color));
+  color: var(--cm-card-foreground, var(--primary-text-color));
+  box-shadow: var(--cm-shadow-x, 3px) var(--cm-shadow-y, 3px) 0 var(--cm-border, var(--side-nav-hover-color));
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+
+.feedSection :deep(.ft-list-video.grid:hover),
+.feedSection :deep(.ft-list-video.grid:focus-within) {
+  z-index: 1;
+  box-shadow: calc(var(--cm-shadow-x, 3px) / 3) calc(var(--cm-shadow-y, 3px) / 3) 0 var(--cm-border, var(--side-nav-hover-color));
+  transform: translate(var(--cm-home-hover-offset, calc(var(--cm-shadow-x, 3px) / 3)), var(--cm-home-hover-offset, calc(var(--cm-shadow-y, 3px) / 3)));
+}
+
+.feedSection :deep(.ft-list-video.grid .title) {
+  color: var(--cm-card-foreground, var(--primary-text-color));
+  font-family: var(--cm-font-family, inherit);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.feedSection :deep(.ft-list-video.grid .infoLine),
+.feedSection :deep(.ft-list-video.grid .channelName) {
+  color: var(--cm-card-foreground, var(--secondary-text-color));
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.8;
 }
 
 .feedCount,
@@ -176,7 +201,35 @@ h1 {
 
 .refreshButton:hover:enabled,
 .feedTab:hover {
-  background: var(--side-nav-hover-color);
+  box-shadow: none;
+  transform: translate(var(--cm-home-button-hover-offset, var(--cm-shadow-x, 2px)), var(--cm-home-button-hover-offset, var(--cm-shadow-y, 2px)));
+}
+
+.refreshButton:hover:enabled,
+.feedTab:hover:not(.active) {
+  background: color-mix(in srgb, var(--primary-color) 12%, var(--cm-muted, var(--card-bg-color)));
+}
+
+.feedTab.active:hover {
+  background: var(--primary-color-hover);
+}
+
+:global(.carterMediaEmbedded:is([data-motion='none'], [data-motion='reduced'])) {
+  --cm-home-hover-offset: 0;
+  --cm-home-button-hover-offset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homePage {
+    --cm-home-hover-offset: 0;
+    --cm-home-button-hover-offset: 0;
+  }
+
+  .feedSection :deep(.ft-list-video.grid),
+  .refreshButton,
+  .feedTab {
+    transition: none;
+  }
 }
 
 @media only screen and (width <= 900px) {
@@ -192,13 +245,7 @@ h1 {
   }
 
   .homeIntro {
-    align-items: flex-start;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .homeIntro > div {
-    flex-basis: 100%;
+    padding-block: 20px 28px;
   }
 
   .refreshButton {
@@ -206,11 +253,8 @@ h1 {
     font-size: 12px;
   }
 
-  .introDescription {
-    font-size: 12px;
-  }
-
   .feedTabs {
+    justify-content: flex-start;
     padding-block-end: 22px;
   }
 

@@ -151,4 +151,19 @@ export const PlaylistDetailWrapper = {
       .find((r) => r.textContent?.includes(trackTitle))!;
     await user.click(within(row).getByLabelText('Remove from list'));
   },
+
+  async dragFirstTrackAfterSecond() {
+    const rows = screen.getAllByTestId('track-row');
+    rows.forEach((row, index) => {
+      vi.spyOn(row, 'getBoundingClientRect').mockReturnValue(
+        new DOMRect(0, index * 42, 600, 42),
+      );
+    });
+    await user.pointer([
+      { target: rows[0], keys: '[MouseLeft>]', coords: { x: 20, y: 20 } },
+      { target: rows[0], coords: { x: 20, y: 30 } },
+      { target: rows[1], coords: { x: 20, y: 65 } },
+      { keys: '[/MouseLeft]' },
+    ]);
+  },
 };

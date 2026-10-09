@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GaugeIcon, HeartIcon } from 'lucide-react';
+import { useState } from 'react';
 
 import { SidebarNavigation } from './SidebarNavigation';
 import { SidebarNavigationItem } from './SidebarNavigationItem';
@@ -64,5 +65,42 @@ describe('SidebarNavigation', () => {
     await userEvent.hover(items[0]);
 
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+
+  it('supports keyboard selection without changing the selected page on hover', async () => {
+    const Sidebar = () => {
+      const [selected, setSelected] = useState('Dashboard');
+      return (
+        <SidebarNavigation>
+          {['Dashboard', 'Favorites'].map((label) => (
+            <SidebarNavigationItem
+              key={label}
+              icon={<GaugeIcon />}
+              label={label}
+              isSelected={selected === label}
+              onClick={() => setSelected(label)}
+            />
+          ))}
+        </SidebarNavigation>
+      );
+    };
+    render(<Sidebar />);
+    const user = userEvent.setup();
+    const dashboard = screen.getByRole('button', { name: 'Dashboard' });
+    const favorites = screen.getByRole('button', { name: 'Favorites' });
+
+    await user.tab();
+    expect(dashboard).toHaveFocus();
+    expect(dashboard).toHaveAttribute('aria-pressed', 'true');
+    await user.hover(favorites);
+    expect(dashboard).toHaveAttribute('aria-pressed', 'true');
+    await user.tab();
+    expect(favorites).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(favorites).toHaveAttribute('aria-pressed', 'true');
+    await user.tab({ shift: true });
+    await user.keyboard(' ');
+    expect(dashboard).toHaveAttribute('aria-pressed', 'true');
+    expect(favorites).toHaveAttribute('aria-pressed', 'false');
   });
 });

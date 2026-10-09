@@ -71,11 +71,15 @@ The Music / Videos switch stays available in both sections. Windows shows both e
 
 Music keeps the plugin marketplace, sources, search, playlists and imports, queue, favorites, lyrics providers, history and statistics, keyboard shortcuts, remote control, MCP, MPD, and its existing preferences. Optional features still need their corresponding plugins.
 
+Click a track row to play it, including its artwork, artist, title, or duration. You can also focus a row and press **Enter** or **Space**. Favorite buttons, menus, and playlist reordering keep their own actions.
+
 Fresh setup automatically installs **Spotify** for music search and metadata and **YouTube** for playback. After setup, search for an artist or track, open **Tracks**, and choose a track or **Play all**. If your connection is unavailable, the app stays open and shows **Retry** for the unfinished source setup. Existing source choices stay saved, and disabling or removing a default plugin does not reinstall it on the next launch.
 
 For optional sources such as **Bandcamp**, open **Settings → Plugins → Store** and choose **Install**. Newly installed sources are available immediately, without restarting; choose them in **Sources**.
 
 Videos keeps search, recommendations, subscriptions and profiles, channels, playlists, history, downloads, captions, SponsorBlock, playback settings, and external-player options. Playback recovery includes bounded requests and a restart option when a video engine stops responding. Service availability and third-party plugins can change independently of this app.
+
+The video home uses the Music interface's themed cards and controls, with the centered heading **Goodtube - Noads No sponsors No distractions**. Choose **For you**, **Following**, **Discover**, or **Continue watching**, or refresh the feed. Shared appearance choices live in **Settings → Make it yours**; Videos hides duplicate controls that the combined app overrides.
 
 ## Updates and your data
 

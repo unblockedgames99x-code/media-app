@@ -15,6 +15,13 @@ import { useVideoLinkStore } from '../../stores/videoLinkStore';
 type VideoEngineState = 'loading' | 'ready' | 'error';
 type VideoEngineResponse = { ready: boolean; pid: number | null };
 
+const THEME_FALLBACKS: Record<string, string> = {
+  '--topbar': '--muted',
+  '--topbar-foreground': '--muted-foreground',
+  '--sidebar-left': '--muted',
+  '--sidebar-left-foreground': '--muted-foreground',
+};
+
 const THEME_VARIABLES = [
   '--background',
   '--foreground',
@@ -28,12 +35,18 @@ const THEME_VARIABLES = [
   '--input-foreground',
   '--primary',
   '--primary-foreground',
+  '--topbar',
+  '--topbar-foreground',
+  '--sidebar-left',
+  '--sidebar-left-foreground',
   '--border',
   '--border-width',
   '--ring',
   '--radius-sm',
   '--radius-md',
   '--radius-lg',
+  '--shadow-x',
+  '--shadow-y',
   '--font-family',
   '--font-family-heading',
   '--font-size-base',
@@ -204,7 +217,8 @@ export const Videos: FC = () => {
       const variables = Object.fromEntries(
         THEME_VARIABLES.map((name) => [
           name,
-          style.getPropertyValue(name).trim(),
+          style.getPropertyValue(name).trim() ||
+            style.getPropertyValue(THEME_FALLBACKS[name] ?? name).trim(),
         ]).filter(([, value]) => value),
       );
       void invoke('video_engine_theme', { variables }).catch(() => {});

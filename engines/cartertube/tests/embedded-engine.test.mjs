@@ -62,6 +62,18 @@ test('theme values accept Nuclear tokens and reject CSS resource injection', () 
   }
 })
 
+test('managed video themes keep surface and text pairs for distinct sidebar and top bar colors', () => {
+  const variables = {
+    '--muted': '#ffffff', '--muted-foreground': '#000000',
+    '--topbar': '#f8f8f8', '--topbar-foreground': '#161616',
+    '--sidebar-left': '#225a80', '--sidebar-left-foreground': '#ffffff',
+    '--primary': '#ffb065', '--primary-foreground': '#161616',
+    '--shadow-x': '0px', '--shadow-y': '7px', '--artwork-radius': '50%'
+  }
+  assert.deepEqual(sanitizeThemeVariables(variables), variables)
+  assert.throws(() => sanitizeThemeVariables({ '--sidebar-left': 'url(https://invalid.test)' }))
+})
+
 test('navigation allowlist preserves video settings while rejecting external destinations', () => {
   for (const route of ['/home', '/popular', '/settings/profile', '/history', '/watch/dQw4w9WgXcQ']) {
     assert.equal(sanitizeNavigationPath(route), route)

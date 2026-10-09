@@ -253,11 +253,13 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
               class="flex flex-1 flex-col gap-2 overflow-y-auto"
             >
               <a
+                class="sidebar-navigation-link"
                 href="/dashboard"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -293,11 +295,13 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/videos"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -355,11 +359,13 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/favorites/albums"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -399,11 +405,13 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/favorites/tracks"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -446,11 +454,13 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/favorites/artists"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -488,11 +498,13 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/playlists"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -537,11 +549,13 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/history"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -580,11 +594,13 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/lyrics"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -625,11 +641,13 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/sources"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -681,10 +699,13 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
               </a>
             </div>
             <div>
-              <div
-                class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) cursor-pointer border-transparent"
+              <button
+                aria-label="Preferences"
+                aria-pressed="false"
+                class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left cursor-pointer border-transparent"
+                data-selected="false"
                 data-testid="sidebar-navigation-item"
-                role="button"
+                type="button"
               >
                 <div
                   class="flex size-8 shrink-0 items-center justify-center"
@@ -717,7 +738,7 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
                 >
                   Preferences
                 </span>
-              </div>
+              </button>
             </div>
           </div>
         </div>
@@ -1022,11 +1043,9 @@ exports[`Artist view > with bio provider > (Snapshot) renders the artist view 1`
                               <tbody>
                                 <tr
                                   aria-describedby=""
-                                  aria-disabled="true"
-                                  aria-roledescription="sortable"
-                                  class="border-border bg-muted group border-b-(length:--border-width) select-none"
+                                  class="border-border bg-muted group border-b-(length:--border-width) select-none cursor-pointer hover:bg-secondary focus-visible:outline-primary focus-visible:outline-2 focus-visible:-outline-offset-2"
                                   data-testid="track-row"
-                                  role="button"
+                                  role="row"
                                   style="height: 42px;"
                                   tabindex="0"
                                 >
@@ -1900,7 +1919,7 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
             class="border-border focus:ring-ring focus:ring-offset-muted relative inline-flex h-6 w-11 cursor-pointer items-center rounded-full border-(length:--border-width) transition-all focus:ring-2 focus:ring-offset-2 focus:outline-none data-checked:surface-primary surface-input data-disabled:cursor-not-allowed data-disabled:opacity-50 group justify-self-end"
             data-checked=""
             data-headlessui-state="checked"
-            id="headlessui-switch-:r2e:"
+            id="headlessui-switch-:rg:"
             role="switch"
             tabindex="0"
             type="button"
@@ -1963,7 +1982,7 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                 class="border-border focus-visible:ring-ring focus-visible:ring-offset-muted w-full transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none surface-background text-foreground placeholder:text-foreground/60 rounded-md border-(length:--border-width) h-8 px-8"
                 data-headlessui-state=""
                 data-testid="search-box"
-                id="input-:r2f:"
+                id="input-:rh:"
                 placeholder="Search"
                 type="text"
                 value="test artist"
@@ -2055,11 +2074,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
               class="flex flex-1 flex-col gap-2 overflow-y-auto"
             >
               <a
+                class="sidebar-navigation-link"
                 href="/dashboard"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -2095,11 +2116,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/videos"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -2157,11 +2180,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/favorites/albums"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -2201,11 +2226,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/favorites/tracks"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -2248,11 +2275,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/favorites/artists"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -2290,11 +2319,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/playlists"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -2339,11 +2370,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/history"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -2382,11 +2415,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/lyrics"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -2427,11 +2462,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                 </div>
               </a>
               <a
+                class="sidebar-navigation-link"
                 href="/sources"
               >
                 <div>
                   <div
-                    class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) border-transparent"
+                    class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left border-transparent"
+                    data-selected="false"
                     data-testid="sidebar-navigation-item"
                   >
                     <div
@@ -2483,10 +2520,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
               </a>
             </div>
             <div>
-              <div
-                class="flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) cursor-pointer border-transparent"
+              <button
+                aria-label="Preferences"
+                aria-pressed="false"
+                class="sidebar-navigation-item flex w-full items-center overflow-hidden rounded-md border-(length:--border-width) text-left cursor-pointer border-transparent"
+                data-selected="false"
                 data-testid="sidebar-navigation-item"
-                role="button"
+                type="button"
               >
                 <div
                   class="flex size-8 shrink-0 items-center justify-center"
@@ -2519,7 +2559,7 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                 >
                   Preferences
                 </span>
-              </div>
+              </button>
             </div>
           </div>
         </div>
@@ -3000,11 +3040,9 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                               <tbody>
                                 <tr
                                   aria-describedby=""
-                                  aria-disabled="true"
-                                  aria-roledescription="sortable"
-                                  class="border-border bg-muted group border-b-(length:--border-width) select-none"
+                                  class="border-border bg-muted group border-b-(length:--border-width) select-none cursor-pointer hover:bg-secondary focus-visible:outline-primary focus-visible:outline-2 focus-visible:-outline-offset-2"
                                   data-testid="track-row"
-                                  role="button"
+                                  role="row"
                                   style="height: 42px;"
                                   tabindex="0"
                                 >
@@ -3109,7 +3147,7 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                                           data-headlessui-state=""
                                           data-state="closed"
                                           data-testid="track-context-menu-button"
-                                          id="radix-:r2s:"
+                                          id="radix-:ru:"
                                           type="button"
                                         >
                                           <svg
@@ -3670,8 +3708,8 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                   >
                     <label
                       class="text-foreground font-semibold"
-                      for=":r2h:"
-                      id=":r2h:-label"
+                      for=":rj:"
+                      id=":rj:-label"
                     >
                       Volume
                     </label>
@@ -3697,13 +3735,13 @@ exports[`Artist view > with social stats provider > (Snapshot) renders the artis
                     </div>
                   </div>
                   <input
-                    aria-labelledby=":r2h:-label"
+                    aria-labelledby=":rj:-label"
                     aria-valuemax="100"
                     aria-valuemin="0"
                     aria-valuenow="100"
                     aria-valuetext="100"
                     class="absolute inset-0 z-[1] h-6 w-full appearance-none opacity-0 cursor-pointer"
-                    id=":r2h:"
+                    id=":rj:"
                     max="100"
                     min="0"
                     step="1"

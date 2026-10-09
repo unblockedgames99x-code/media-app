@@ -332,11 +332,9 @@ exports[`FavoriteTracks view > (Snapshot) renders with tracks 1`] = `
                     <tbody>
                       <tr
                         aria-describedby=""
-                        aria-disabled="true"
-                        aria-roledescription="sortable"
-                        class="border-border bg-muted group border-b-(length:--border-width) select-none"
+                        class="border-border bg-muted group border-b-(length:--border-width) select-none cursor-pointer hover:bg-secondary focus-visible:outline-primary focus-visible:outline-2 focus-visible:-outline-offset-2"
                         data-testid="track-row"
-                        role="button"
+                        role="row"
                         style="height: 42px;"
                         tabindex="0"
                       >
@@ -479,11 +477,9 @@ exports[`FavoriteTracks view > (Snapshot) renders with tracks 1`] = `
                       </tr>
                       <tr
                         aria-describedby=""
-                        aria-disabled="true"
-                        aria-roledescription="sortable"
-                        class="border-border bg-muted group border-b-(length:--border-width) select-none"
+                        class="border-border bg-muted group border-b-(length:--border-width) select-none cursor-pointer hover:bg-secondary focus-visible:outline-primary focus-visible:outline-2 focus-visible:-outline-offset-2"
                         data-testid="track-row"
-                        role="button"
+                        role="row"
                         style="height: 42px;"
                         tabindex="0"
                       >

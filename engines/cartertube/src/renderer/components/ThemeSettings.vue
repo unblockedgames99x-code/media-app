@@ -5,12 +5,14 @@
     <div class="switchColumnGrid">
       <div class="switchColumn">
         <FtToggleSwitch
+          v-if="!isManagedWorkspace"
           :label="$t('Settings.Theme Settings.Match Top Bar with Main Color')"
           compact
           :default-value="barColor"
           @change="updateBarColor"
         />
         <FtToggleSwitch
+          v-if="!isEmbeddedWorkspace"
           :label="$t('Settings.Theme Settings.Expand Side Bar by Default')"
           compact
           :default-value="expandSideBar"
@@ -26,6 +28,7 @@
       </div>
       <div class="switchColumn">
         <FtToggleSwitch
+          v-if="!isEmbeddedWorkspace"
           :label="$t('Settings.Theme Settings.Hide Side Bar Labels')"
           compact
           :default-value="hideLabelsSideBar"
@@ -53,7 +56,7 @@
       </FtFlexBox>
       <br>
     </template>
-    <FtFlexBox>
+    <FtFlexBox v-if="!isManagedWorkspace">
       <FtSelect
         :placeholder="$t('Settings.Theme Settings.Base Theme.Base Theme')"
         :value="baseTheme"
@@ -108,8 +111,10 @@ import store from '../store/index'
 
 import { colors } from '../helpers/colors'
 import { useColorTranslations } from '../composables/colors'
+import { useManagedWorkspace } from '../composables/managedWorkspace.mjs'
 
 const { t } = useI18n()
+const { isManagedWorkspace, isEmbeddedWorkspace } = useManagedWorkspace()
 
 // Themes are devided into 3 groups.
 // The first group contains the default themes.

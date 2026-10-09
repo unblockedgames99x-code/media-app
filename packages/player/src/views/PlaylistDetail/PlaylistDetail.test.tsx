@@ -9,6 +9,7 @@ import type { PlaylistItem } from '@nuclearplayer/model';
 import { PlayerBarWrapper } from '../../integration-tests/PlayerBar.test-wrapper';
 import { QueueWrapper } from '../../integration-tests/Queue.test-wrapper';
 import { providersHost } from '../../services/providersHost';
+import { usePlaylistStore } from '../../stores/playlistStore';
 import { useQueueStore } from '../../stores/queueStore';
 import { useStartupStore } from '../../stores/startupStore';
 import { MetadataProviderBuilder } from '../../test/builders/MetadataProviderBuilder';
@@ -258,8 +259,14 @@ describe('PlaylistDetail view', () => {
   it('enables reorder for editable playlists', async () => {
     await PlaylistDetailWrapper.mount('test-playlist');
 
-    const rows = screen.getAllByTestId('track-row');
-    expect(rows[0]).toHaveAttribute('aria-disabled', 'false');
+    await PlaylistDetailWrapper.dragFirstTrackAfterSecond();
+
+    expect(
+      usePlaylistStore
+        .getState()
+        .playlists.get('test-playlist')
+        ?.items.map((item) => item.track.title),
+    ).toEqual(['So What', 'Giant Steps']);
   });
 
   it('does not enable reorder for read-only playlists', async () => {
@@ -274,8 +281,14 @@ describe('PlaylistDetail view', () => {
 
     await PlaylistDetailWrapper.mount('readonly-playlist');
 
-    const rows = screen.getAllByTestId('track-row');
-    expect(rows[0]).toHaveAttribute('aria-disabled', 'true');
+    await PlaylistDetailWrapper.dragFirstTrackAfterSecond();
+
+    expect(
+      usePlaylistStore
+        .getState()
+        .playlists.get('readonly-playlist')
+        ?.items.map((item) => item.track.title),
+    ).toEqual(['Track A', 'Track B']);
   });
 
   it('adds all tracks to queue without clearing', async () => {

@@ -82,4 +82,28 @@ describe('App', () => {
     expect(AppWrapper.identity).toHaveTextContent('Evening room');
     expect(document.title).toBe('Evening room');
   });
+
+  it('opens sidebar Preferences with Space while the music playback shortcut is active', async () => {
+    await AppWrapper.mount();
+    expect(await AppWrapper.openPreferencesWithKeyboard()).toBeVisible();
+  });
+
+  it.each([
+    ['light', '#20242b', '#666666', 'rgb(32, 36, 43)'],
+    ['dark', '#f0f2f5', '#aaaaaa', 'rgb(240, 242, 245)'],
+    ['custom blue sidebar', '#ffffff', '#000000', 'rgb(255, 255, 255)'],
+  ])(
+    'keeps the Videos heading readable on the %s theme sidebar',
+    async (_name, foreground, contentMuted, expectedColor) => {
+      const removeTheme = AppWrapper.useSidebarColors(foreground, contentMuted);
+      await AppWrapper.mount();
+      await AppWrapper.mediaTab('Videos').click();
+      await AppWrapper.videosOpened();
+
+      expect(getComputedStyle(AppWrapper.videoNavigationHeading).color).toBe(
+        expectedColor,
+      );
+      removeTheme();
+    },
+  );
 });

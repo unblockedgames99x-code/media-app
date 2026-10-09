@@ -27,6 +27,62 @@ describe('Videos workspace', () => {
     await VideosWrapper.ready();
   });
 
+  it('forwards the matching sidebar, top bar, input and selected colors and updates missing surfaces on theme changes', async () => {
+    const originalStyle = document.documentElement.style.cssText;
+    const customColors = {
+      '--muted': '#ffffff',
+      '--muted-foreground': '#000000',
+      '--topbar': '#f8f8f8',
+      '--topbar-foreground': '#161616',
+      '--sidebar-left': '#225a80',
+      '--sidebar-left-foreground': '#ffffff',
+      '--input': '#ffffff',
+      '--input-foreground': '#161616',
+      '--primary': '#ffb065',
+      '--primary-foreground': '#161616',
+      '--shadow-x': '0px',
+      '--shadow-y': '0px',
+      '--artwork-radius': '50%',
+    };
+    VideosWrapper.setThemeVariables(customColors);
+    VideosWrapper.mount();
+    await VideosWrapper.ready();
+    await VideosWrapper.themeApplied(customColors);
+
+    for (const colors of [
+      {
+        '--muted': '#17191f',
+        '--muted-foreground': '#f0f2f5',
+        '--shadow-x': '7px',
+        '--shadow-y': '5px',
+        '--artwork-radius': '0px',
+      },
+      {
+        '--muted': '#ffffff',
+        '--muted-foreground': '#20242b',
+        '--shadow-x': '0px',
+        '--shadow-y': '0px',
+        '--artwork-radius': '12px',
+      },
+    ]) {
+      VideosWrapper.setThemeVariables({
+        ...colors,
+        '--topbar': '',
+        '--topbar-foreground': '',
+        '--sidebar-left': '',
+        '--sidebar-left-foreground': '',
+      });
+      await VideosWrapper.themeApplied({
+        ...colors,
+        '--topbar': colors['--muted'],
+        '--topbar-foreground': colors['--muted-foreground'],
+        '--sidebar-left': colors['--muted'],
+        '--sidebar-left-foreground': colors['--muted-foreground'],
+      });
+    }
+    document.documentElement.style.cssText = originalStyle;
+  });
+
   it('keeps the video engine hidden until first launch setup is complete', async () => {
     VideosWrapper.startSetup();
     VideosWrapper.mount();

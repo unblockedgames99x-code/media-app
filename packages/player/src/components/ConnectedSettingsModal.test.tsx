@@ -48,6 +48,26 @@ describe('ConnectedSettingsModal', () => {
     ).toBeInTheDocument();
   });
 
+  it('keeps navigation free of promotional links and version text while preserving source attribution', async () => {
+    await ConnectedSettingsModalWrapper.mount();
+
+    expect(ConnectedSettingsModalWrapper.navigationButtonCount).toBe(13);
+    expect(ConnectedSettingsModalWrapper.navigation).not.toHaveTextContent(
+      /Discord|GitHub|Mastodon|Website|v\d+\.\d+\.\d+/,
+    );
+
+    await ConnectedSettingsModalWrapper.appTab('whats-new').click();
+    expect(ConnectedSettingsModalWrapper.sourceAttribution).toHaveTextContent(
+      'Nuclear',
+    );
+    expect(ConnectedSettingsModalWrapper.sourceAttribution).toHaveTextContent(
+      'FreeTube',
+    );
+    expect(ConnectedSettingsModalWrapper.sourceAttribution).toHaveTextContent(
+      'AGPL-3.0',
+    );
+  });
+
   it('selecting an App tab shows that view', async () => {
     await ConnectedSettingsModalWrapper.mount();
 

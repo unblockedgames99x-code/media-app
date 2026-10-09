@@ -1,6 +1,55 @@
 [
   {
     "date": "2026-10-09T00:00",
+    "description": "Video artwork honors the selected rounded, square, or circular shape. Home cards, the video header, and navigation hover shadows follow your chosen shadow size, including turning shadows off.",
+    "type": "fix",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "UI", "color": "purple" }]
+  },
+  {
+    "date": "2026-10-09T00:00",
+    "description": "Videos now shares the Music interface's bordered cards, theme colors, readable text, and responsive hover controls, with the centered heading Goodtube - Noads No sponsors No distractions. Feed filters, refresh, recommendations, and watch progress remain available.",
+    "type": "improvement",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "UI", "color": "purple" }]
+  },
+  {
+    "date": "2026-10-09T00:00",
+    "description": "Click any song row, artwork, artist, album, or duration to play it immediately. Enter and Space work on focused rows, while favorites, queue, menus, removal, and playlist dragging keep their own actions.",
+    "type": "improvement",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "Audio", "color": "blue" }]
+  },
+  {
+    "date": "2026-10-09T00:00",
+    "description": "Video settings hide theme colors and desktop options managed by the combined app. Video scaling, smooth scrolling, custom header identity visibility, and functional playback, source, privacy, and data settings remain available. Standalone video settings keep their original controls.",
+    "type": "improvement",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "UI", "color": "purple" }]
+  },
+  {
+    "date": "2026-10-09T00:00",
+    "description": "On Windows, clicking inside the embedded Videos page explicitly focuses its keyboard input, including the search field. The focus relay runs only for the visible, trusted video page and stops when its window closes.",
+    "type": "fix",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "Desktop", "color": "orange" }]
+  },
+  {
+    "date": "2026-10-09T00:00",
+    "description": "Music and Videos navigation now share themed hover outlines, subtle shadows, and visible keyboard focus. The video header's custom name and logo have a matching hover and press effect that respects reduced motion. Video headings, sidebar icons, selected items, and search controls use the foreground color paired with their actual theme surface in light, dark, and custom styles.",
+    "type": "improvement",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "UI", "color": "purple" }]
+  },
+  {
+    "date": "2026-10-09T00:00",
+    "description": "Preferences has a cleaner sidebar without upstream social buttons or a footer version label, and Videos About removes upstream promotional cards. Original source credits, licenses, help, and this app's source and release links remain available.",
+    "type": "improvement",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "UI", "color": "purple" }]
+  },
+  {
+    "date": "2026-10-09T00:00",
     "description": "The optional mini player uses your chosen name, logo, fonts, and live app theme, while keeping its playback controls, queue, lyrics, fullscreen, and customization settings.",
     "type": "fix",
     "contributors": ["Media contributors"],

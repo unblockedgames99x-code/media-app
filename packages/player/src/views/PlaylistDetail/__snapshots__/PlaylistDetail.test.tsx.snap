@@ -396,11 +396,10 @@ exports[`PlaylistDetail view > (Snapshot) renders playlist detail with tracks 1`
                     <tbody>
                       <tr
                         aria-describedby="DndDescribedBy-0"
-                        aria-disabled="false"
                         aria-roledescription="sortable"
-                        class="border-border bg-muted group border-b-(length:--border-width) select-none cursor-grab"
+                        class="border-border bg-muted group border-b-(length:--border-width) select-none cursor-grab hover:bg-secondary focus-visible:outline-primary focus-visible:outline-2 focus-visible:-outline-offset-2"
                         data-testid="track-row"
-                        role="button"
+                        role="row"
                         style="height: 42px;"
                         tabindex="0"
                       >
@@ -592,11 +591,10 @@ exports[`PlaylistDetail view > (Snapshot) renders playlist detail with tracks 1`
                       </tr>
                       <tr
                         aria-describedby="DndDescribedBy-0"
-                        aria-disabled="false"
                         aria-roledescription="sortable"
-                        class="border-border bg-muted group border-b-(length:--border-width) select-none cursor-grab"
+                        class="border-border bg-muted group border-b-(length:--border-width) select-none cursor-grab hover:bg-secondary focus-visible:outline-primary focus-visible:outline-2 focus-visible:-outline-offset-2"
                         data-testid="track-row"
-                        role="button"
+                        role="row"
                         style="height: 42px;"
                         tabindex="0"
                       >
