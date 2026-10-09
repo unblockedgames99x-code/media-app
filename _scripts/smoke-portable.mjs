@@ -279,7 +279,13 @@ try {
     const inspection = await host.evaluate("window.__TAURI_INTERNALS__.invoke('video_engine_status')");
     assert.equal(inspection.ready, true);
     assert.equal(inspection.visible, true);
-    assert.equal(inspection.hwnd !== null, true);
+    assert.equal(typeof inspection.parentHwnd, 'string', 'Native inspection is missing the serialized parentHwnd field.');
+    assert.match(inspection.parentHwnd, /^[1-9][0-9]*$/, 'The native parent HWND is invalid.');
+    assert.equal(typeof inspection.hwnd, 'string', 'Native inspection is missing the child hwnd field.');
+    assert.match(inspection.hwnd, /^[1-9][0-9]*$/, 'The native child HWND is invalid.');
+    assert(Number.isSafeInteger(application.pid) && application.pid > 1, 'The owned host process ID is invalid.');
+    assert(Number.isSafeInteger(inspection.pid) && inspection.pid > 1, 'The native video engine process ID is invalid.');
+    assert.equal(inspection.pid, report.nativeReadiness.pid, 'Native inspection identifies a different video engine from the validated packaged process.');
     report.nativeEmbedding = true;
 
     stage('video-keyboard-focus');
@@ -291,7 +297,7 @@ try {
       transport: 'Win32 SendInput mouse and virtual keyboard events; Chromium DevTools read-only assertions',
       bounds: inputBounds,
       before: await video.evaluate(focusState),
-      hostWindow: inspection.parent_hwnd,
+      hostWindow: inspection.parentHwnd,
       childWindow: inspection.hwnd,
       hostPid: application.pid,
       enginePid: inspection.pid,
@@ -301,7 +307,7 @@ try {
     const windowsInput = createWindowsInputTest();
     try {
       report.videoInputFocus.nativeActivation = await windowsInput.send('begin', {
-        hostWindow: inspection.parent_hwnd,
+        hostWindow: inspection.parentHwnd,
         childWindow: inspection.hwnd,
         hostProcess: application.pid,
         engineProcess: inspection.pid,
