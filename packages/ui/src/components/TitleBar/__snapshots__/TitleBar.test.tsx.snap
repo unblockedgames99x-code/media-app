@@ -1,0 +1,130 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TitleBar > (Snapshot) renders Mac variant 1`] = `
+<div
+  class="border-border surface-background relative flex h-6 items-center border-b-2 select-none justify-start"
+  data-testid="title-bar"
+>
+  <div
+    class="group flex items-center gap-1.5 pl-3"
+    data-testid="mac-window-controls"
+  >
+    <button
+      class="surface-accent-red outline-foreground h-3 w-3 rounded-full opacity-80 outline-2 group-hover:opacity-100"
+      title="Close"
+    />
+    <button
+      class="surface-accent-yellow outline-foreground h-3 w-3 rounded-full opacity-80 outline-2 group-hover:opacity-100"
+      title="Minimize"
+    />
+    <button
+      class="surface-accent-green outline-foreground h-3 w-3 rounded-full opacity-80 outline-2 group-hover:opacity-100"
+      title="Maximize"
+    />
+  </div>
+  <span
+    class="text-foreground font-heading text-md pointer-events-none absolute inset-x-0 flex text-center font-medium"
+  >
+    <span
+      class="flex w-full items-center justify-center gap-2"
+    >
+      My listening room
+    </span>
+  </span>
+</div>
+`;
+
+exports[`TitleBar > (Snapshot) renders Windows variant 1`] = `
+<div
+  class="border-border surface-background relative flex h-6 items-center border-b-2 select-none justify-end"
+  data-testid="title-bar"
+>
+  <div
+    class="flex h-full items-center"
+    data-testid="windows-window-controls"
+  >
+    <button
+      class="text-foreground hover:bg-primary hover:text-primary-foreground inline-flex h-full w-11 items-center justify-center border-none bg-transparent"
+      title="Minimize"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-minus"
+        fill="none"
+        height="14"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+        width="14"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M5 12h14"
+        />
+      </svg>
+    </button>
+    <button
+      class="text-foreground hover:bg-primary hover:text-primary-foreground inline-flex h-full w-11 items-center justify-center border-none bg-transparent"
+      title="Maximize"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-square"
+        fill="none"
+        height="14"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+        width="14"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect
+          height="18"
+          rx="2"
+          width="18"
+          x="3"
+          y="3"
+        />
+      </svg>
+    </button>
+    <button
+      class="text-foreground hover:bg-accent-red hover:text-accent-red-foreground inline-flex h-full w-11 items-center justify-center border-none bg-transparent"
+      title="Close"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-x"
+        fill="none"
+        height="14"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+        width="14"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M18 6 6 18"
+        />
+        <path
+          d="m6 6 12 12"
+        />
+      </svg>
+    </button>
+  </div>
+  <span
+    class="text-foreground font-heading text-md pointer-events-none absolute inset-x-0 flex text-center font-medium"
+  >
+    <span
+      class="flex w-full items-center justify-center gap-2"
+    >
+      My listening room
+    </span>
+  </span>
+</div>
+`;

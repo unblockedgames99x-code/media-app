@@ -1,0 +1,238 @@
+/* CarterTube shell. Existing theme and feature settings remain available. */
+@font-face {
+  font-family: Outfit;
+  src: url('./assets/font/Outfit-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+.dark,
+.system[data-system-theme='dark'] {
+  --primary-text-color: #f6f4f4;
+  --secondary-text-color: #b5b5be;
+  --tertiary-text-color: #98989f;
+  --title-color: #f6f4f4;
+  --bg-color: #080809;
+  --card-bg-color: #121214;
+  --secondary-card-bg-color: #1d1d20;
+  --side-nav-color: #101012;
+  --side-nav-hover-color: #242427;
+  --side-nav-active-color: #332026;
+  --search-bar-color: #1d1d20;
+  --scrollbar-color: #343438;
+  --scrollbar-color-hover: #62626c;
+  --primary-shadow-color: transparent;
+}
+
+.mainRed {
+  --primary-color: #ff414c;
+  --primary-color-hover: #f75b65;
+  --primary-color-active: #db303c;
+  --text-with-main-color: #fff;
+}
+
+.secBlue {
+  --accent-color-rgb: 255 105 116;
+  --accent-color-hover: #ff8991;
+  --accent-color-active: #ff414c;
+  --accent-color-visited: #eea1a8;
+}
+
+body {
+  font-family: Outfit, Roboto, sans-serif;
+
+  --logo-icon: url('./assets/img/cartertube-mark.svg');
+}
+
+.app button,
+.app input,
+.app select,
+.app textarea {
+  font-family: inherit;
+}
+
+.app .topNav {
+  background: var(--bg-color);
+  box-shadow: none;
+  border-block-end: 1px solid color-mix(in srgb, var(--primary-text-color) 8%, transparent);
+  padding-inline: 8px;
+  box-sizing: border-box;
+}
+
+.app .topNavBarColor {
+  background: var(--primary-color);
+}
+
+.app .topNav .logo {
+  padding-inline: 8px;
+  gap: 9px;
+  border-radius: 12px;
+  color: var(--primary-text-color);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app .topNav .logoIcon {
+  background-image: url('./assets/img/cartertube-mark.svg');
+  background-size: contain;
+  inline-size: 34px;
+  block-size: 34px;
+  flex-shrink: 0;
+}
+
+.carterWordmark {
+  font-weight: 650;
+  font-size: 21px;
+  letter-spacing: -0.8px;
+}
+
+.carterWordmark span {
+  color: var(--primary-color);
+}
+
+.topNavBarColor .carterWordmark span {
+  color: inherit;
+}
+
+.app .topNav .searchContainer {
+  gap: 6px;
+}
+
+.app .topNav .ft-input {
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--primary-text-color) 8%, transparent);
+  box-shadow: none;
+  font-size: 14px;
+}
+
+.app .topNav .ft-input:focus {
+  border-color: var(--accent-color);
+}
+
+.app .topNav .navFilterButton {
+  margin-inline-start: 0;
+  font-size: 16px;
+}
+
+.app .ft-card {
+  border-radius: 18px;
+  box-shadow: none;
+  border: 1px solid color-mix(in srgb, var(--primary-text-color) 6%, transparent);
+}
+
+.app > .routerView {
+  min-inline-size: 0;
+}
+
+.app .ft-list-item .thumbnailLink {
+  border-radius: 12px;
+}
+
+.app .ft-list-item .videoTitle {
+  font-weight: 550;
+  line-height: 1.4;
+}
+
+.app .ft-list-item .videoDuration {
+  font-size: 12px;
+  border-radius: 5px;
+  padding-block: 3px;
+  padding-inline: 5px;
+}
+
+.app .sideNav hr {
+  background: color-mix(in srgb, var(--primary-text-color) 10%, transparent);
+  margin-block: 18px;
+}
+
+.app .sideNav .navOption {
+  border-radius: 11px;
+}
+
+.app .sideNav .router-link-active {
+  background: color-mix(in srgb, var(--primary-color) 13%, var(--side-nav-color));
+  color: var(--primary-color);
+}
+
+.app :focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 3px;
+}
+
+@media (width >= 1150px) {
+  .app .topNav {
+    grid-template-columns: minmax(395px, 1fr) minmax(320px, 540px) minmax(100px, 1fr);
+  }
+
+  .app .topNav .middle {
+    max-inline-size: 540px;
+  }
+}
+
+@media (width > 680px) {
+  .app .sideNav {
+    margin-block: 14px;
+    margin-inline: 12px 0;
+    border-radius: 18px;
+    block-size: calc(100vh - 88px);
+    inset-block-start: 74px;
+    box-shadow: none;
+  }
+
+  .app .sideNav.opened,
+  .app .sideNav.opened .inner {
+    inline-size: 224px;
+  }
+
+  .app .sideNav.opened .navOption {
+    margin-inline: 10px;
+    padding-block: 8px;
+  }
+
+  .app .sideNav.opened .navLabel {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .app > .routerView {
+    min-inline-size: 0;
+    margin-block: 14px;
+    margin-inline: 12px;
+  }
+}
+
+@media (width <= 1100px) {
+  .app .topNav .carterWordmark {
+    display: none;
+  }
+}
+
+@media (width <= 680px) {
+  .app .topNav {
+    padding-inline: 2px;
+  }
+
+  .app .topNav .searchContainer {
+    padding-inline: 8px;
+  }
+
+  .app .sideNav {
+    justify-content: space-around;
+    overflow-x: auto;
+  }
+
+  .app .sideNav .navOption {
+    min-inline-size: 54px;
+    flex-shrink: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app *,
+  .app *::before,
+  .app *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

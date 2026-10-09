@@ -1,0 +1,9 @@
+dist/
+node_modules/
+src-tauri/target/
+src-tauri/Cargo.lock
+*.json
+*.md
+.astro/
+utilities.css
+packages/player/src/services/tauri/bindings.ts

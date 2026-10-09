@@ -1,0 +1,15 @@
+const categoryColors = {
+  releases: 'bg-primary',
+  features: 'bg-accent-green',
+  themes: 'bg-accent-blue',
+  comparisons: 'bg-accent-yellow',
+} as const;
+
+const FALLBACK_CATEGORY_COLOR = 'bg-muted';
+
+export type Category = keyof typeof categoryColors;
+
+export const categories = Object.keys(categoryColors) as Category[];
+
+export const tagColor = (tag: string): string =>
+  categoryColors[tag as Category] ?? FALLBACK_CATEGORY_COLOR;

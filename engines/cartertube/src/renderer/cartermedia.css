@@ -1,0 +1,245 @@
+@font-face {
+  font-family: 'Space Mono';
+  src: url('./assets/font/Space-Mono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./assets/font/DM-Sans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./assets/font/DM-Sans-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('./assets/font/Bricolage-Grotesque-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+
+.carterMediaEmbedded {
+  --cm-background: oklch(22% 0.03 20deg);
+  --cm-foreground: oklch(90% 0.008 30deg);
+  --cm-muted: oklch(27% 0.035 20deg);
+  --cm-muted-foreground: oklch(90% 0.008 30deg);
+  --cm-card: oklch(64% 0.1 30deg);
+  --cm-card-foreground: oklch(95% 0 0deg);
+  --cm-primary: oklch(64% 0.1 30deg);
+  --cm-primary-foreground: oklch(95% 0 0deg);
+  --cm-input: oklch(14% 0.02 20deg);
+  --cm-input-foreground: oklch(90% 0.008 30deg);
+  --cm-popover: oklch(27% 0.035 20deg);
+  --cm-popover-foreground: oklch(90% 0.008 30deg);
+  --cm-border: oklch(68% 0.11 20deg);
+  --cm-border-width: 1px;
+  --cm-radius-sm: 4px;
+  --cm-radius-md: 8px;
+  --cm-radius-lg: 12px;
+  --cm-font-family: 'DM Sans', system-ui, sans-serif;
+  --cm-font-family-heading: 'Bricolage Grotesque', system-ui, sans-serif;
+}
+
+.carterMediaEmbedded body {
+  --primary-text-color: var(--cm-foreground);
+  --secondary-text-color: var(--cm-muted-foreground);
+  --tertiary-text-color: color-mix(in srgb, var(--cm-muted-foreground) 75%, var(--cm-background));
+  --title-color: var(--cm-foreground);
+  --bg-color: var(--cm-background);
+  --card-bg-color: var(--cm-muted);
+  --secondary-card-bg-color: color-mix(in srgb, var(--cm-muted) 85%, var(--cm-primary));
+  --search-bar-color: var(--cm-input);
+  --primary-input-color: var(--cm-input-foreground);
+  --side-nav-color: var(--cm-muted);
+  --side-nav-hover-color: var(--cm-muted);
+  --side-nav-active-color: var(--cm-primary);
+  --primary-color: var(--cm-primary);
+  --primary-color-hover: color-mix(in srgb, var(--cm-primary) 90%, var(--cm-foreground));
+  --primary-color-active: var(--cm-primary);
+  --text-with-main-color: var(--cm-primary-foreground);
+  --accent-color: var(--cm-primary);
+  --accent-color-hover: var(--primary-color-hover);
+  --accent-color-active: var(--cm-primary);
+  --accent-color-visited: var(--cm-primary);
+  --accent-color-opacity1: color-mix(in srgb, var(--cm-primary) 4%, transparent);
+  --accent-color-opacity2: color-mix(in srgb, var(--cm-primary) 12%, transparent);
+  --accent-color-opacity3: color-mix(in srgb, var(--cm-primary) 16%, transparent);
+  --accent-color-opacity4: color-mix(in srgb, var(--cm-primary) 24%, transparent);
+  --scrollbar-color: var(--cm-border);
+  --scrollbar-color-hover: var(--cm-primary);
+  --primary-shadow-color: transparent;
+
+  color: var(--cm-foreground);
+  background: var(--cm-background);
+  font-family: var(--cm-font-family);
+  font-size: var(--cm-font-size-base, 16px);
+  line-height: var(--cm-line-height, 1.5);
+  font-weight: var(--cm-font-weight-normal, 400);
+}
+
+.carterMediaEmbedded .app {
+  font-family: var(--cm-font-family);
+  position: relative;
+  isolation: isolate;
+}
+
+.carterMediaEmbedded .app::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--cm-workspace-background, none) center / cover fixed;
+  opacity: var(--cm-workspace-opacity, 1);
+  filter: blur(var(--cm-workspace-blur, 0));
+}
+
+.carterMediaEmbedded .personalIdentity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.carterMediaEmbedded .personalLogo {
+  inline-size: 28px;
+  block-size: 28px;
+  object-fit: contain;
+}
+
+.carterMediaEmbedded .personalName {
+  max-inline-size: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--cm-font-family-heading);
+}
+
+.carterMediaEmbedded .app button,
+.carterMediaEmbedded .app input,
+.carterMediaEmbedded .app select,
+.carterMediaEmbedded .app textarea {
+  font-family: var(--cm-font-family);
+}
+
+.carterMediaEmbedded .app .thumbnail,
+.carterMediaEmbedded .app .thumbnailLink,
+.carterMediaEmbedded .thumbnail img,
+.carterMediaEmbedded .app .channelThumbnail {
+  border-radius: var(--cm-artwork-radius, var(--cm-radius-md));
+  filter: saturate(var(--cm-artwork-saturation, 100%));
+}
+
+.carterMediaEmbedded[data-artwork='hidden'] .thumbnail img,
+.carterMediaEmbedded[data-artwork='hidden'] .thumbnailLink img,
+.carterMediaEmbedded[data-artwork='hidden'] .app .channelThumbnail {
+  visibility: hidden;
+}
+
+.carterMediaEmbedded[data-motion='none'] *,
+.carterMediaEmbedded[data-motion='none'] *::before,
+.carterMediaEmbedded[data-motion='none'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+.carterMediaEmbedded[data-motion='reduced'] *,
+.carterMediaEmbedded[data-motion='reduced'] *::before,
+.carterMediaEmbedded[data-motion='reduced'] *::after {
+  animation-duration: 0.1s !important;
+  transition-duration: 0.1s !important;
+  scroll-behavior: auto !important;
+}
+
+.carterMediaEmbedded[data-tooltips='hidden'] [role='tooltip'] {
+  display: none !important;
+}
+
+.carterMediaWorkspace .app .sideNav,
+.carterMediaWorkspace .app .menuButton {
+  display: block;
+}
+
+.carterMediaWorkspace .app .workspaceReturn {
+  padding-block: 8px;
+  padding-inline: 16px;
+  border: var(--cm-border-width) solid var(--cm-border);
+  border-radius: var(--cm-radius-md);
+  background: var(--cm-primary);
+  color: var(--cm-primary-foreground);
+  font: inherit;
+  cursor: pointer;
+}
+
+.carterMediaWorkspace .app > .routerView {
+  margin-inline: 10px;
+}
+
+.carterMediaEmbedded .app .sideNav,
+.carterMediaEmbedded .app .menuButton {
+  display: none;
+}
+
+.carterMediaEmbedded .app > .routerView {
+  min-inline-size: 0;
+  margin-inline: 8px;
+}
+
+.carterMediaEmbedded .app .floatingRefreshSection {
+  inline-size: 100%;
+}
+
+.carterMediaEmbedded .app .topNav {
+  border-block-end: var(--cm-border-width) solid var(--cm-border);
+  background: var(--cm-background);
+}
+
+.carterMediaEmbedded .topNav .ft-input,
+.carterMediaEmbedded .app .ft-card {
+  border: var(--cm-border-width) solid var(--cm-border);
+  border-radius: var(--cm-radius-lg);
+}
+
+.carterMediaEmbedded .topNav .ft-input {
+  border-radius: var(--cm-radius-md);
+}
+
+.carterMediaEmbedded .app .thumbnailLink {
+  border-radius: var(--cm-radius-md);
+}
+
+.carterMediaEmbedded .app h1,
+.carterMediaEmbedded .app h2,
+.carterMediaEmbedded .app h3,
+.carterMediaEmbedded .app .carterWordmark {
+  font-family: var(--cm-font-family-heading);
+  font-weight: 800;
+}
+
+.carterMediaEmbedded .app .carterWordmark {
+  letter-spacing: -0.6px;
+}
+
+@media (width >= 1150px) {
+  .carterMediaEmbedded .app .topNav {
+    grid-template-columns: minmax(280px, 1fr) minmax(280px, 540px) minmax(100px, 1fr);
+  }
+}
+
+.carterMediaEmbedded[data-density='compact'] .app .ft-card {
+  padding: 10px;
+}
+
+.carterMediaEmbedded[data-density='spacious'] .app .ft-card {
+  padding: 26px;
+}
+

@@ -1,0 +1,23 @@
+{
+  "id": "../",
+  "dir": "ltr",
+  "lang": "en-US",
+  "name": "CarterTube",
+  "short_name": "CarterTube",
+  "description": "Your private video library, with recommendations from your history and channels.",
+  "scope": "../",
+  "start_url": "../#/home",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#080809",
+  "background_color": "#080809",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "../imgs/cartertube-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

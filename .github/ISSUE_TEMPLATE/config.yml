@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Installation instructions
+    url: https://github.com/unblockedgames99x-code/media-app#install
+    about: Simple Windows, Linux, and macOS installation steps.

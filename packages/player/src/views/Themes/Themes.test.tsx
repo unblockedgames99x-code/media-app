@@ -1,0 +1,708 @@
+import '../../test/mocks/plugin-fs';
+
+import * as fs from '@tauri-apps/plugin-fs';
+import { LazyStore } from '@tauri-apps/plugin-store';
+import { screen, waitFor } from '@testing-library/react';
+
+import * as themes from '@nuclearplayer/themes';
+
+import { applyThemeFromSettingsIfAny } from '../../services/advancedThemeService';
+import {
+  startAdvancedThemeWatcher,
+  stopAdvancedThemeWatcher,
+  WATCH_DEBOUNCE_MS,
+} from '../../services/advancedThemeWatcher';
+import { useThemeStore } from '../../stores/themeStore';
+import { SAKURA_THEME_FILE } from '../../test/fixtures/themeRegistry';
+import { PluginFsMock, watchImmediateCb } from '../../test/mocks/plugin-fs';
+import { ThemesWrapper } from './Themes.test-wrapper';
+
+const logError = vi.fn();
+const toastError = vi.fn();
+vi.mock('@tauri-apps/plugin-log', () => ({
+  error: (...args: unknown[]) => logError(...args),
+  warn: () => Promise.resolve(),
+  debug: () => Promise.resolve(),
+  trace: () => Promise.resolve(),
+  info: () => Promise.resolve(),
+}));
+vi.mock('sonner', () => ({
+  toast: { error: (...args: unknown[]) => toastError(...args) },
+}));
+
+const advancedThemes = [
+  { name: 'My Theme', path: '/themes/my.json' },
+  { name: 'Another', path: '/themes/another.json' },
+];
+
+describe('Themes view', async () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.spyOn(themes, 'setThemeId');
+    vi.spyOn(themes, 'applyAdvancedTheme');
+  });
+  afterEach(() => {
+    stopAdvancedThemeWatcher();
+    vi.useRealTimers();
+  });
+
+  it('(Snapshot) renders the themes view', async () => {
+    const { getByRole } = await ThemesWrapper.mount();
+    expect(getByRole('dialog')).toMatchSnapshot();
+  });
+
+  it('renders the Themes view sections', async () => {
+    await ThemesWrapper.mount();
+    expect(await screen.findByTestId('basic-themes')).toBeInTheDocument();
+    expect(await screen.findByTestId('advanced-themes')).toBeInTheDocument();
+  });
+
+  it('populates advanced themes from the app data themes directory on watcher start and shows them in the UI', async () => {
+    PluginFsMock.setExists(false);
+    PluginFsMock.setMkdir(undefined);
+    PluginFsMock.setReadDir([
+      { name: 'another.json', isDirectory: false },
+      { name: 'my.json', isDirectory: false },
+      { name: 'ignore.txt', isDirectory: false },
+      { name: 'nested', isDirectory: true },
+    ]);
+    PluginFsMock.setReadTextFileByMap({
+      '/my.json': JSON.stringify({ version: 2, name: 'My Theme', vars: {} }),
+      '/another.json': JSON.stringify({
+        version: 2,
+        name: 'Another',
+        vars: {},
+      }),
+    });
+
+    await startAdvancedThemeWatcher();
+
+    await ThemesWrapper.mount();
+    const options = await ThemesWrapper.advancedThemeSelect.availableOptions();
+    expect(options).toContain('Another');
+    expect(options).toContain('My Theme');
+
+    expect(fs.mkdir).toHaveBeenCalledWith('themes', {
+      baseDir: '/home/user/.local/share/com.nuclearplayer',
+      recursive: true,
+    });
+  });
+
+  describe('Live reload', () => {
+    const fireWatchEvent = (paths: string[]) => {
+      watchImmediateCb?.({ paths, type: 'any', attrs: {} });
+    };
+
+    const emitWatchEventsAndFlush = async (events: string[][]) => {
+      vi.useFakeTimers();
+      events.forEach(fireWatchEvent);
+      await vi.advanceTimersByTimeAsync(WATCH_DEBOUNCE_MS);
+      vi.useRealTimers();
+    };
+
+    const mountWithActiveAdvancedTheme = async () => {
+      PluginFsMock.setExists(true);
+      PluginFsMock.setReadDir([
+        { name: 'my.json', isDirectory: false },
+        { name: 'other.json', isDirectory: false },
+      ]);
+      PluginFsMock.setReadTextFileByMap({
+        'themes/my.json': JSON.stringify({
+          version: 2,
+          name: 'My Theme',
+          vars: { p: '#111' },
+        }),
+        'themes/other.json': JSON.stringify({
+          version: 2,
+          name: 'Other',
+          vars: { p: '#222' },
+        }),
+      });
+
+      await startAdvancedThemeWatcher();
+      await ThemesWrapper.mount();
+      await ThemesWrapper.advancedThemeSelect.select('My Theme');
+    };
+
+    it('reloads the active advanced theme once when its file changes several times in quick succession', async () => {
+      await mountWithActiveAdvancedTheme();
+      expect(themes.applyAdvancedTheme).toHaveBeenCalledTimes(1);
+
+      await emitWatchEventsAndFlush([
+        ['/appdata/themes/my.json'],
+        ['/appdata/themes/my.json'],
+        ['/appdata/themes/my.json'],
+      ]);
+
+      expect(themes.applyAdvancedTheme).toHaveBeenCalledTimes(2);
+      expect(fs.readTextFile).toHaveBeenCalledWith('themes/my.json', {
+        baseDir: '/home/user/.local/share/com.nuclearplayer',
+      });
+    });
+
+    it('refreshes the theme list once for a burst of changes', async () => {
+      await mountWithActiveAdvancedTheme();
+      vi.mocked(fs.readDir).mockClear();
+
+      await emitWatchEventsAndFlush([
+        ['/appdata/themes/a.json'],
+        ['/appdata/themes/b.json'],
+        ['/appdata/themes/c.json'],
+      ]);
+
+      expect(fs.readDir).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't rewrite settings when the active theme file changes on disk", async () => {
+      await mountWithActiveAdvancedTheme();
+      const saveSettings = vi.spyOn(LazyStore.prototype, 'save');
+
+      await emitWatchEventsAndFlush([['/appdata/themes/my.json']]);
+
+      expect(themes.applyAdvancedTheme).toHaveBeenCalledTimes(2);
+      expect(saveSettings).not.toHaveBeenCalled();
+    });
+
+    it("doesn't reload when a different file changes", async () => {
+      await mountWithActiveAdvancedTheme();
+
+      await emitWatchEventsAndFlush([['/appdata/themes/other.json']]);
+
+      expect(themes.applyAdvancedTheme).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't reload when a basic theme is active", async () => {
+      await mountWithActiveAdvancedTheme();
+      await ThemesWrapper.selectBasicTheme('Default');
+
+      await emitWatchEventsAndFlush([['/appdata/themes/my.json']]);
+
+      expect(themes.applyAdvancedTheme).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't reload after the watcher is stopped", async () => {
+      await mountWithActiveAdvancedTheme();
+
+      vi.useFakeTimers();
+      fireWatchEvent(['/appdata/themes/my.json']);
+      stopAdvancedThemeWatcher();
+      await vi.advanceTimersByTimeAsync(WATCH_DEBOUNCE_MS);
+      vi.useRealTimers();
+
+      expect(themes.applyAdvancedTheme).toHaveBeenCalledTimes(1);
+    });
+
+    it('starts a single filesystem watcher when initialized concurrently', async () => {
+      PluginFsMock.setExists(true);
+      PluginFsMock.setReadDir([]);
+
+      await Promise.all([
+        startAdvancedThemeWatcher(),
+        startAdvancedThemeWatcher(),
+      ]);
+
+      expect(fs.watchImmediate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('gracefully reports errors when reading the themes directory fails', async () => {
+    PluginFsMock.setExists(true);
+    PluginFsMock.setReadDirError(new Error('boom'));
+
+    await startAdvancedThemeWatcher();
+
+    await ThemesWrapper.mount();
+    expect(toastError).toHaveBeenCalledWith('Failed to read themes directory', {
+      description: 'boom',
+    });
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /^\[themes\] Failed to read themes directory: Error: boom/,
+      ),
+    );
+  });
+
+  describe('Theme selection', () => {
+    it('selects a basic theme', async () => {
+      await ThemesWrapper.mount();
+      await ThemesWrapper.selectBasicTheme('Ember');
+      expect(
+        useThemeStore
+          .getState()
+          .isSelected({ type: 'basic', id: 'nuclear:ember' }),
+      ).toBe(true);
+    });
+
+    it('loads and applies selected advanced theme file', async () => {
+      PluginFsMock.setReadTextFile(
+        JSON.stringify({
+          version: 2,
+          name: 'My Theme',
+          vars: { primary: '#123' },
+        }),
+      );
+
+      await ThemesWrapper.mount({ advancedThemes });
+
+      await ThemesWrapper.advancedThemeSelect.select('My Theme');
+
+      expect(fs.readTextFile).toHaveBeenCalledWith('/themes/my.json', {
+        baseDir: '/home/user/.local/share/com.nuclearplayer',
+      });
+      expect(themes.setThemeId).toHaveBeenCalledWith('');
+      expect(themes.applyAdvancedTheme).toHaveBeenCalledTimes(1);
+      expect(useThemeStore.getState().isAdvancedThemeSelected()).toBe(true);
+      expect(
+        useThemeStore
+          .getState()
+          .isSelected({ type: 'advanced', path: '/themes/my.json' }),
+      ).toBe(true);
+    });
+
+    it('loads a version 1 theme with its colors mapped to the version 2 tokens', async () => {
+      PluginFsMock.setReadTextFile(
+        JSON.stringify({
+          version: 1,
+          name: 'My Theme',
+          vars: {
+            background: '#111',
+            'background-secondary': '#222',
+            'background-input': '#333',
+            foreground: '#444',
+            'foreground-secondary': '#555',
+            'foreground-input': '#666',
+            primary: '#777',
+            border: '#888',
+            'border-input': '#999',
+          },
+          dark: {
+            background: '#aaa',
+            'background-secondary': '#bbb',
+            'foreground-secondary': '#ccc',
+          },
+        }),
+      );
+
+      await ThemesWrapper.mount({ advancedThemes });
+
+      await ThemesWrapper.advancedThemeSelect.select('My Theme');
+
+      expect(document.getElementById('advanced-theme')!.textContent).toBe(
+        [
+          ':root{--background: #111; --border: #888; --border-input: #999; --muted: #222; --input: #333; --foreground: #444; --muted-foreground: #444; --primary-foreground: #444; --card-foreground: #444; --popover-foreground: #444; --accent-green-foreground: #444; --accent-yellow-foreground: #444; --accent-purple-foreground: #444; --accent-blue-foreground: #444; --accent-orange-foreground: #444; --accent-cyan-foreground: #444; --accent-red-foreground: #444; --input-foreground: #666; --primary: #777; --card: #777; --popover: #777;}',
+          "[data-theme='dark']{--background: #aaa; --muted: #bbb;}",
+        ].join('\n'),
+      );
+    });
+
+    it('skips a theme with an unknown version and still lists the others', async () => {
+      PluginFsMock.setExists(true);
+      PluginFsMock.setReadDir([
+        { name: 'future.json', isDirectory: false },
+        { name: 'current.json', isDirectory: false },
+      ]);
+      PluginFsMock.setReadTextFileByMap({
+        '/future.json': JSON.stringify({
+          version: 3,
+          name: 'Future',
+          vars: { background: '#111' },
+        }),
+        '/current.json': JSON.stringify({
+          version: 2,
+          name: 'Current',
+          vars: { background: '#222' },
+        }),
+      });
+
+      await startAdvancedThemeWatcher();
+      await ThemesWrapper.mount();
+
+      expect(
+        await ThemesWrapper.advancedThemeSelect.availableOptions(),
+      ).toEqual(['Current']);
+    });
+
+    it('resets to default when the Default basic theme is clicked', async () => {
+      PluginFsMock.setReadTextFile(
+        JSON.stringify({
+          version: 2,
+          name: 'My Theme',
+          vars: { primary: '#123' },
+        }),
+      );
+
+      await ThemesWrapper.mount({
+        advancedThemes: [{ name: 'My Theme', path: '/themes/my.json' }],
+      });
+
+      await ThemesWrapper.advancedThemeSelect.select('My Theme');
+      await ThemesWrapper.selectBasicTheme('Default');
+
+      expect(useThemeStore.getState().isBasicThemeSelected()).toBe(true);
+    });
+
+    it('unhighlights basic themes when an advanced theme is selected', async () => {
+      PluginFsMock.setReadTextFile(
+        JSON.stringify({
+          version: 2,
+          name: 'My Theme',
+          vars: { primary: '#123' },
+        }),
+      );
+
+      await ThemesWrapper.mount({ advancedThemes });
+      await ThemesWrapper.selectBasicTheme('Ember');
+      expect(ThemesWrapper.activeBasicTheme).toBe('Ember');
+
+      await ThemesWrapper.advancedThemeSelect.select('My Theme');
+      expect(ThemesWrapper.activeBasicTheme).toBeNull();
+    });
+
+    it('hides the marketplace dropdown when no marketplace themes are installed', async () => {
+      await ThemesWrapper.mount();
+      expect(ThemesWrapper.marketplaceThemeSelect).toBeNull();
+    });
+
+    it('shows the marketplace dropdown when marketplace themes are installed', async () => {
+      await ThemesWrapper.mountWithMarketplaceTheme();
+      expect(ThemesWrapper.marketplaceThemeSelect).not.toBeNull();
+    });
+
+    it('selects a marketplace theme from the my themes tab dropdown', async () => {
+      await ThemesWrapper.mountWithMarketplaceTheme();
+      await ThemesWrapper.marketplaceThemeSelect!.select('Sakura');
+      expect(ThemesWrapper.activeBasicTheme).toBeNull();
+      expect(ThemesWrapper.advancedThemeSelect.selected()).toBe(
+        'Select a theme',
+      );
+    });
+
+    it('unhighlights basic themes when a marketplace theme is selected', async () => {
+      await ThemesWrapper.mountWithMarketplaceTheme();
+      await ThemesWrapper.selectBasicTheme('Ember');
+      expect(ThemesWrapper.activeBasicTheme).toBe('Ember');
+
+      await ThemesWrapper.marketplaceThemeSelect!.select('Sakura');
+      expect(ThemesWrapper.activeBasicTheme).toBeNull();
+    });
+
+    it('deselects the marketplace theme when a basic theme is clicked', async () => {
+      await ThemesWrapper.mountWithMarketplaceTheme();
+      await ThemesWrapper.marketplaceThemeSelect!.select('Sakura');
+      expect(ThemesWrapper.marketplaceThemeSelect!.selected()).toBe('Sakura');
+
+      await ThemesWrapper.selectBasicTheme('Ember');
+      expect(ThemesWrapper.activeBasicTheme).toBe('Ember');
+      expect(ThemesWrapper.marketplaceThemeSelect!.selected()).toBe(
+        'Select a theme',
+      );
+    });
+
+    it('deselects the marketplace theme when an advanced theme is selected', async () => {
+      PluginFsMock.setReadTextFile(
+        JSON.stringify({
+          version: 2,
+          name: 'My Theme',
+          vars: { primary: '#123' },
+        }),
+      );
+
+      await ThemesWrapper.mountWithMarketplaceTheme({ advancedThemes });
+      await ThemesWrapper.marketplaceThemeSelect!.select('Sakura');
+      expect(ThemesWrapper.marketplaceThemeSelect!.selected()).toBe('Sakura');
+
+      await ThemesWrapper.advancedThemeSelect.select('My Theme');
+      expect(ThemesWrapper.marketplaceThemeSelect!.selected()).toBe(
+        'Select a theme',
+      );
+    });
+  });
+
+  describe('Store tab', () => {
+    beforeEach(() => {
+      ThemesWrapper.setupStoreIndex();
+    });
+
+    it('shows theme cards with names, descriptions, authors, and palette swatches', async () => {
+      await ThemesWrapper.mount();
+      await ThemesWrapper.goToStoreTab();
+
+      const storeThemes = await ThemesWrapper.getStoreThemes();
+      expect(storeThemes.map((theme) => theme.data)).toEqual([
+        {
+          name: 'Sakura',
+          description: 'Cherry blossom',
+          author: 'by nukeop',
+          isInstalled: false,
+        },
+        {
+          name: 'Nordic Frost',
+          description: 'Cool blue Scandinavian theme',
+          author: 'by someone',
+          isInstalled: false,
+        },
+      ]);
+    });
+
+    it('filters themes by search input matching name, description, author, and tags', async () => {
+      await ThemesWrapper.mount();
+      await ThemesWrapper.goToStoreTab();
+      await ThemesWrapper.getStoreThemes();
+
+      await ThemesWrapper.searchStore('sakura');
+      expect(ThemesWrapper.storeThemeNames).toEqual(['Sakura']);
+
+      await ThemesWrapper.searchStore('someone');
+      expect(ThemesWrapper.storeThemeNames).toEqual(['Nordic Frost']);
+
+      await ThemesWrapper.searchStore('blue');
+      expect(ThemesWrapper.storeThemeNames).toEqual(['Nordic Frost']);
+
+      await ThemesWrapper.searchStore('nonexistent');
+      expect(ThemesWrapper.storeThemeNames).toEqual([]);
+    });
+
+    it('installs a theme when the user clicks install', async () => {
+      ThemesWrapper.setupThemeFile('sakura');
+      PluginFsMock.setExists(true);
+      PluginFsMock.setMkdir(undefined);
+
+      await ThemesWrapper.mount();
+      await ThemesWrapper.goToStoreTab();
+
+      await ThemesWrapper.installTheme('Sakura');
+
+      const sakura = await ThemesWrapper.getStoreTheme('Sakura');
+      await waitFor(() => {
+        expect(sakura.isInstalled).toBe(true);
+      });
+
+      expect(fs.writeTextFile).toHaveBeenCalledWith(
+        'themes/store/sakura.json',
+        JSON.stringify(SAKURA_THEME_FILE, null, 2),
+        { baseDir: fs.BaseDirectory.AppData },
+      );
+    });
+
+    it('shows already-installed themes as installed', async () => {
+      await ThemesWrapper.mount({
+        marketplaceThemes: [
+          { id: 'sakura', name: 'Sakura', path: 'themes/store/sakura.json' },
+        ],
+      });
+      await ThemesWrapper.goToStoreTab();
+
+      const sakura = await ThemesWrapper.getStoreTheme('Sakura');
+      const nordic = await ThemesWrapper.getStoreTheme('Nordic Frost');
+
+      expect(sakura.isInstalled).toBe(true);
+      expect(nordic.isInstalled).toBe(false);
+    });
+
+    it('shows an error toast and logs the error when installation fails', async () => {
+      ThemesWrapper.setupThemeFile('sakura');
+      vi.mocked(fs.writeTextFile).mockRejectedValueOnce(
+        new Error('Permission denied'),
+      );
+
+      await ThemesWrapper.mount();
+      await ThemesWrapper.goToStoreTab();
+
+      await ThemesWrapper.installTheme('Sakura');
+
+      await waitFor(() => {
+        expect(toastError).toHaveBeenCalled();
+      });
+      expect(logError).toHaveBeenCalledWith(
+        expect.stringContaining('Permission denied'),
+      );
+      const sakura = await ThemesWrapper.getStoreTheme('Sakura');
+      expect(sakura.isInstalled).toBe(false);
+    });
+
+    it('shows an error toast and logs the error when fetching the theme file fails', async () => {
+      ThemesWrapper.setupThemeFileError('sakura', 404, 'Not Found');
+
+      await ThemesWrapper.mount();
+      await ThemesWrapper.goToStoreTab();
+
+      await ThemesWrapper.installTheme('Sakura');
+
+      await waitFor(() => {
+        expect(toastError).toHaveBeenCalled();
+      });
+      expect(logError).toHaveBeenCalledWith(expect.stringContaining('404'));
+      const sakura = await ThemesWrapper.getStoreTheme('Sakura');
+      expect(sakura.isInstalled).toBe(false);
+    });
+
+    it('shows an error state when the store fails to load', async () => {
+      ThemesWrapper.setupStoreIndexError(500, 'Internal Server Error');
+
+      await ThemesWrapper.mount();
+      await ThemesWrapper.goToStoreTab();
+
+      expect(await ThemesWrapper.storeErrorState).toBeInTheDocument();
+    });
+
+    it('shows an apply button on installed store themes', async () => {
+      await ThemesWrapper.mount({
+        marketplaceThemes: [
+          { id: 'sakura', name: 'Sakura', path: 'themes/store/sakura.json' },
+        ],
+      });
+      await ThemesWrapper.goToStoreTab();
+
+      const sakura = await ThemesWrapper.getStoreTheme('Sakura');
+      expect(sakura.applyButton.element).toBeInTheDocument();
+
+      const nordic = await ThemesWrapper.getStoreTheme('Nordic Frost');
+      expect(nordic.applyButton.element).not.toBeInTheDocument();
+    });
+
+    it('applies a marketplace theme when the apply button is clicked', async () => {
+      await ThemesWrapper.mountWithMarketplaceTheme();
+      await ThemesWrapper.goToStoreTab();
+
+      const sakura = await ThemesWrapper.getStoreTheme('Sakura');
+      await sakura.applyButton.click();
+
+      await ThemesWrapper.goToMyThemesTab();
+      expect(ThemesWrapper.activeBasicTheme).toBeNull();
+      expect(ThemesWrapper.marketplaceThemeSelect!.selected()).toBe('Sakura');
+    });
+
+    it('shows the active marketplace theme as active', async () => {
+      await ThemesWrapper.mountWithMarketplaceTheme();
+      await ThemesWrapper.goToStoreTab();
+
+      const sakura = await ThemesWrapper.getStoreTheme('Sakura');
+      expect(sakura.isActive).toBe(false);
+
+      await sakura.applyButton.click();
+      await waitFor(() => {
+        expect(sakura.isActive).toBe(true);
+      });
+    });
+
+    it('shows an uninstall button on installed store themes', async () => {
+      await ThemesWrapper.mount({
+        marketplaceThemes: [
+          { id: 'sakura', name: 'Sakura', path: 'themes/store/sakura.json' },
+        ],
+      });
+      await ThemesWrapper.goToStoreTab();
+
+      const sakura = await ThemesWrapper.getStoreTheme('Sakura');
+      expect(sakura.uninstallButton.element).toBeInTheDocument();
+
+      const nordic = await ThemesWrapper.getStoreTheme('Nordic Frost');
+      expect(nordic.uninstallButton.element).not.toBeInTheDocument();
+    });
+
+    it('uninstalls a theme and shows it as not installed', async () => {
+      await ThemesWrapper.mountWithMarketplaceTheme();
+      await ThemesWrapper.goToStoreTab();
+
+      const sakura = await ThemesWrapper.getStoreTheme('Sakura');
+      expect(sakura.isInstalled).toBe(true);
+
+      await sakura.uninstallButton.click();
+
+      await waitFor(() => {
+        expect(sakura.isInstalled).toBe(false);
+      });
+      expect(fs.remove).toHaveBeenCalledWith('themes/store/sakura.json', {
+        baseDir: '/home/user/.local/share/com.nuclearplayer',
+      });
+    });
+
+    it('resets to default when the active theme is uninstalled', async () => {
+      await ThemesWrapper.mountWithMarketplaceTheme();
+      await ThemesWrapper.goToStoreTab();
+
+      const sakura = await ThemesWrapper.getStoreTheme('Sakura');
+      await sakura.applyButton.click();
+      expect(sakura.isActive).toBe(true);
+
+      await sakura.uninstallButton.click();
+
+      await waitFor(() => {
+        expect(sakura.isInstalled).toBe(false);
+      });
+
+      await ThemesWrapper.goToMyThemesTab();
+      expect(ThemesWrapper.activeBasicTheme).toBe('Default');
+    });
+  });
+
+  describe('Theme restoration on restart', () => {
+    afterEach(() => {
+      // needed to clean up injected style between tests
+      document.getElementById('advanced-theme')?.remove();
+    });
+
+    it('restores and applies a marketplace theme on startup', async () => {
+      ThemesWrapper.setupStoreIndex();
+      PluginFsMock.setReadTextFile(JSON.stringify(SAKURA_THEME_FILE));
+
+      await ThemesWrapper.mount({
+        marketplaceThemes: [
+          { id: 'sakura', name: 'Sakura', path: 'themes/store/sakura.json' },
+        ],
+        activeTheme: { type: 'marketplace', id: 'sakura' },
+      });
+      await applyThemeFromSettingsIfAny();
+
+      const styleElement = document.getElementById('advanced-theme');
+      expect(styleElement).toBeInTheDocument();
+      expect(styleElement!.textContent).toContain(
+        SAKURA_THEME_FILE.vars.background,
+      );
+
+      expect(ThemesWrapper.activeBasicTheme).toBeNull();
+      expect(ThemesWrapper.marketplaceThemeSelect!.selected()).toBe('Sakura');
+    });
+
+    it('restores and applies an advanced theme on startup', async () => {
+      const advancedThemeFile = {
+        version: 2,
+        name: 'Custom',
+        vars: { background: 'oklch(0.2 0.05 280)' },
+      };
+      PluginFsMock.setReadTextFile(JSON.stringify(advancedThemeFile));
+
+      await ThemesWrapper.mount({
+        advancedThemes: [{ name: 'Custom', path: '/themes/custom.json' }],
+        activeTheme: { type: 'advanced', path: '/themes/custom.json' },
+      });
+      await applyThemeFromSettingsIfAny();
+
+      const styleElement = document.getElementById('advanced-theme');
+      expect(styleElement).toBeInTheDocument();
+      expect(styleElement!.textContent).toContain('oklch(0.2 0.05 280)');
+    });
+
+    it('does not inject a style element when a basic theme is active', async () => {
+      await ThemesWrapper.mount({
+        activeTheme: { type: 'basic', id: 'nuclear:default' },
+      });
+      await applyThemeFromSettingsIfAny();
+
+      expect(document.getElementById('advanced-theme')).toBeNull();
+      expect(ThemesWrapper.activeBasicTheme).toBe('Default');
+    });
+
+    it('does nothing when a marketplace theme id is not found in installed themes', async () => {
+      await ThemesWrapper.mount({
+        marketplaceThemes: [
+          { id: 'sakura', name: 'Sakura', path: 'themes/store/sakura.json' },
+        ],
+        activeTheme: { type: 'marketplace', id: 'deleted-theme' },
+      });
+      await applyThemeFromSettingsIfAny();
+
+      expect(document.getElementById('advanced-theme')).toBeNull();
+    });
+  });
+});

@@ -1,0 +1,68 @@
+import { FC, ReactNode } from 'react';
+
+import { cn } from '../../utils';
+
+export type ConnectionStatus =
+  'connecting' | 'connected' | 'reconnecting' | 'failed';
+
+export type ConnectionStatusLabels = Record<ConnectionStatus, string>;
+
+export type NuclearJamHeaderProps = {
+  brandName?: string;
+  connectionStatus: ConnectionStatus;
+  connectionStatusLabels: ConnectionStatusLabels;
+  children?: ReactNode;
+  className?: string;
+};
+
+const CONNECTION_DOT_COLOR: Record<ConnectionStatus, string> = {
+  connecting: 'surface-accent-yellow',
+  connected: 'surface-accent-green',
+  reconnecting: 'surface-accent-yellow',
+  failed: 'surface-accent-red',
+};
+
+export const NuclearJamHeader: FC<NuclearJamHeaderProps> = ({
+  brandName = '',
+  connectionStatus,
+  connectionStatusLabels,
+  children,
+  className,
+}) => (
+  <div
+    className={cn(
+      'border-border flex shrink-0 flex-wrap items-center justify-between gap-x-3 border-b-(length:--border-width)',
+      className,
+    )}
+  >
+    <span className="my-3 ml-4 flex shrink-0 flex-row gap-2">
+      <h1
+        aria-label={brandName}
+        className="text-foreground inline text-base font-black tracking-tight uppercase"
+      >
+        {brandName}
+      </h1>
+    </span>
+    {children && (
+      <span className="order-last flex w-full min-w-0 items-stretch self-stretch sm:order-0 sm:w-auto sm:flex-1">
+        {children}
+      </span>
+    )}
+    <span
+      className="border-border bg-foreground my-3 mr-4 inline-flex shrink-0 items-center gap-1.5 rounded-full border-(length:--border-width) px-2.5 py-0.5"
+      data-testid="connection-status-badge"
+    >
+      <span
+        className={cn(
+          'size-2 rounded-full',
+          CONNECTION_DOT_COLOR[connectionStatus],
+          connectionStatus === 'reconnecting' && 'animate-pulse',
+        )}
+        data-testid="connection-status-dot"
+      />
+      <span className="text-background text-xs font-semibold">
+        {connectionStatusLabels[connectionStatus]}
+      </span>
+    </span>
+  </div>
+);

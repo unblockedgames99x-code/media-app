@@ -1,0 +1,87 @@
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource-variable/dm-sans/wght-italic.css';
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource/space-mono';
+@import '@nuclearplayer/tailwind-config';
+@plugin '@tailwindcss/typography';
+@source '../components';
+@source '../layouts';
+@source '../pages';
+
+@theme {
+  --animate-blink: blink 0.8s step-end infinite;
+
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+:root {
+  --page-bg: oklch(100% 0 0);
+  --primary: oklch(0.8 0.12 4.56);
+  --background: oklch(0.9163 0.0361 7.16);
+  --muted: oklch(100% 0 0);
+  --color-heading-accent: var(--primary);
+  --color-heading-shadow: var(--foreground);
+  --color-star: var(--foreground);
+  --color-star-bg: var(--accent-yellow);
+  --color-discord: oklch(0.5774 0.2091 273.85);
+  --border-width: 2px;
+}
+
+.themed-border {
+  border-width: var(--border-width);
+  border-style: solid;
+}
+
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, var(--color-foreground) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-foreground) 1px, transparent 1px);
+}
+
+.bg-radial-fade {
+  background: radial-gradient(
+    circle at center,
+    var(--page-bg) 0%,
+    var(--page-bg) 20%,
+    var(--page-bg) 40%,
+    transparent 70%
+  );
+}
+
+.bg-paper-texture {
+  background-image: url('/textures/paper.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Classes required by medium-zoom*/
+.medium-zoom-overlay {
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.medium-zoom-image--opened {
+  z-index: 101;
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--border);
+  box-shadow: none;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}

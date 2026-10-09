@@ -1,0 +1,300 @@
+import { createMemoryHistory, createRouter } from '@tanstack/react-router';
+import {
+  render,
+  RenderResult,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+import App from '../../App';
+import { routeTree } from '../../routeTree.gen';
+import type {
+  HistoryEntry,
+  TopAlbum,
+  TopArtist,
+  TopTrack,
+} from '../../services/tauri/bindings';
+import { useFavoritesStore } from '../../stores/favoritesStore';
+import { useQueueStore } from '../../stores/queueStore';
+import type { TauriCommandMocks } from '../../test/utils/commandMocks';
+import { ok } from '../../test/utils/commandMocks';
+
+const user = userEvent.setup();
+
+const FAVORITED_LABEL = 'Remove from favorites';
+
+const topList = (testId: string) => ({
+  async find() {
+    return screen.findByTestId(testId);
+  },
+  get element() {
+    return screen.queryByTestId(testId);
+  },
+  get rows() {
+    return within(screen.getByTestId(testId))
+      .getAllByTestId('top-list-row')
+      .map((row) => ({
+        label: within(row).getByTestId('top-list-label').textContent,
+        sublabel: within(row).queryByTestId('top-list-sublabel')?.textContent,
+        value: within(row).getByTestId('top-list-value').textContent,
+      }));
+  },
+});
+
+export const createHistoryWrapper = (commandMocks: TauriCommandMocks) => ({
+  init() {
+    commandMocks.reset();
+    this.mockFirstPlayAt(Date.parse('2026-06-01T00:00:00Z'));
+    this.mockHourlyListeningTime(Array.from({ length: 24 }, () => 0));
+    this.mockDailyListeningTime([]);
+    this.mockTopArtists();
+    this.mockTopAlbums();
+    this.mockTopTracks();
+    useQueueStore.setState({ items: [], currentIndex: 0 });
+    useFavoritesStore.setState({
+      tracks: [],
+      albums: [],
+      artists: [],
+      loaded: true,
+    });
+  },
+
+  mockHistoryEntries(...entries: HistoryEntry[]) {
+    commandMocks.command('historyFetch').mockImplementation(async (page) =>
+      ok({
+        items: entries.slice(page.offset, page.offset + page.limit),
+        total: entries.length,
+      }),
+    );
+  },
+
+  mockFirstPlayAt(at: number) {
+    commandMocks.command('historyFirstPlayAt').mockResolvedValue(ok({ at }));
+  },
+
+  mockNoListeningHistory() {
+    commandMocks.command('historyFirstPlayAt').mockResolvedValue(ok(null));
+  },
+
+  mockHourlyListeningTime(values: number[]) {
+    commandMocks
+      .command('historyHourlyListeningTime')
+      .mockResolvedValue(ok({ values }));
+  },
+
+  mockDailyListeningTime(days: { date: string; value: number }[]) {
+    commandMocks
+      .command('historyDailyListeningTime')
+      .mockResolvedValue(ok(days));
+  },
+
+  mockTopArtists(...artists: TopArtist[]) {
+    commandMocks.command('historyTopArtists').mockResolvedValue(ok(artists));
+  },
+
+  mockTopAlbums(...albums: TopAlbum[]) {
+    commandMocks.command('historyTopAlbums').mockResolvedValue(ok(albums));
+  },
+
+  mockTopTracks(...tracks: TopTrack[]) {
+    commandMocks.command('historyTopTracks').mockResolvedValue(ok(tracks));
+  },
+
+  async mount(): Promise<RenderResult> {
+    const history = createMemoryHistory({ initialEntries: ['/history'] });
+    const router = createRouter({ routeTree, history });
+    const component = render(<App routerProp={router} />);
+    await screen.findByTestId('history-view');
+    return component;
+  },
+
+  async mountOnListTab(): Promise<RenderResult> {
+    const component = await this.mount();
+    await this.tabs.listeningHistory.click();
+    await waitFor(() => {
+      expect(screen.queryByTestId('history-loading')).not.toBeInTheDocument();
+    });
+    return component;
+  },
+
+  tabs: {
+    stats: {
+      async click() {
+        await user.click(screen.getByRole('tab', { name: 'Stats' }));
+      },
+    },
+    listeningHistory: {
+      async click() {
+        await user.click(
+          screen.getByRole('tab', { name: 'Listening history' }),
+        );
+      },
+    },
+  },
+
+  stats: {
+    clock: {
+      async find() {
+        return screen.findByTestId('listening-clock');
+      },
+      get element() {
+        return screen.queryByTestId('listening-clock');
+      },
+    },
+    get busiestHour() {
+      return screen.getByTestId('listening-clock-busiest-hour').textContent;
+    },
+    get listeningTime() {
+      return screen.getByTestId('listening-clock-busiest-value').textContent;
+    },
+    emptyState: {
+      async find() {
+        return screen.findByTestId('history-stats-empty');
+      },
+    },
+    rangeSelect: {
+      get element() {
+        return screen.queryByTestId('history-stats-range');
+      },
+      async select(label: string) {
+        await user.click(
+          within(screen.getByTestId('history-stats-range')).getByRole('button'),
+        );
+        await user.click(await screen.findByRole('option', { name: label }));
+      },
+    },
+    dayOfWeekChart: {
+      get element() {
+        return screen.queryByTestId('day-of-week-chart');
+      },
+    },
+    heatmap: {
+      async find() {
+        return screen.findByTestId('calendar-heatmap');
+      },
+      get element() {
+        return screen.queryByTestId('calendar-heatmap');
+      },
+    },
+    topArtists: topList('history-top-artists'),
+    topAlbums: topList('history-top-albums'),
+    topTracks: topList('history-top-tracks'),
+  },
+
+  get emptyState() {
+    return screen.getByTestId('history-empty-state');
+  },
+
+  get rows() {
+    return screen.getAllByTestId('history-row');
+  },
+
+  pagination: {
+    get isVisible() {
+      return screen.queryByTestId('history-pagination') !== null;
+    },
+    get element() {
+      return screen.getByTestId('history-pagination');
+    },
+    get pages() {
+      return within(this.element)
+        .getAllByTestId('pagination-item')
+        .map((item) => item.textContent);
+    },
+    get currentPage() {
+      return within(this.element).getByRole('button', { current: 'page' })
+        .textContent;
+    },
+    previous: {
+      async click() {
+        await user.click(screen.getByRole('button', { name: 'Previous page' }));
+      },
+    },
+    next: {
+      async click() {
+        await user.click(screen.getByRole('button', { name: 'Next page' }));
+      },
+    },
+  },
+
+  pageSizeSelect: {
+    get element() {
+      return screen.getByTestId('history-page-size');
+    },
+    async select(size: string) {
+      await user.click(within(this.element).getByRole('button'));
+      await user.click(await screen.findByRole('option', { name: size }));
+    },
+  },
+
+  queue: {
+    get tracks() {
+      return screen.getAllByTestId('queue-item').map((item) => ({
+        title: within(item).getByTestId('queue-item-title').textContent,
+        artist: within(item).getByTestId('queue-item-artist').textContent,
+      }));
+    },
+    get currentTrackTitle() {
+      const current = screen
+        .getAllByTestId('queue-item')
+        .find((item) => item.getAttribute('data-is-current') === 'true');
+      return within(current!).getByTestId('queue-item-title').textContent;
+    },
+  },
+
+  get dayGroups() {
+    return screen.getAllByTestId('history-day-group').map((group) => ({
+      marker: within(group).getByTestId('history-day-marker').textContent,
+      rowTitles: within(group)
+        .getAllByTestId('history-row-title')
+        .map((title) => title.textContent),
+    }));
+  },
+
+  row(index: number) {
+    const element = () => screen.getAllByTestId('history-row')[index];
+    return {
+      get element() {
+        return element();
+      },
+      get title() {
+        return within(element()).getByTestId('history-row-title').textContent;
+      },
+      get artist() {
+        return within(element()).getByTestId('history-row-artist').textContent;
+      },
+      get artwork() {
+        return within(element()).getByRole('img');
+      },
+      get playedAt() {
+        return within(element()).getByTestId('history-row-played-at')
+          .textContent;
+      },
+      favoriteButton: {
+        get element() {
+          return within(element()).getByTestId('history-row-favorite');
+        },
+        get isFavorited() {
+          return this.element.getAttribute('aria-label') === FAVORITED_LABEL;
+        },
+        async click() {
+          await user.click(this.element);
+        },
+      },
+      addToQueueButton: {
+        async click() {
+          await user.click(
+            within(element()).getByTestId('history-row-add-to-queue'),
+          );
+        },
+      },
+      playButton: {
+        async click() {
+          await user.click(within(element()).getByTestId('history-row-title'));
+        },
+      },
+    };
+  },
+});

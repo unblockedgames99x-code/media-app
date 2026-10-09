@@ -1,0 +1,52 @@
+import { RefObject, useEffect, useRef } from 'react';
+
+import { MseController } from '../fmp4';
+import { AudioSource } from '../types';
+
+export const useMseSource = (
+  audioRef: RefObject<HTMLAudioElement | null>,
+  src: AudioSource,
+  onError?: (error: Error) => void,
+  onSourceInvalid?: () => void,
+) => {
+  const controllerRef = useRef<MseController | null>(null);
+
+  useEffect(() => {
+    if (controllerRef.current) {
+      controllerRef.current.destroy(audioRef.current);
+      controllerRef.current = null;
+    }
+
+    const audio = audioRef.current;
+    if (!audio || src.protocol !== 'mse') {
+      return;
+    }
+
+    const controller = new MseController();
+    controllerRef.current = controller;
+    controller.init(audio, src.url, {
+      codec: src.codec,
+      onError,
+      onSourceInvalid,
+    });
+
+    const onTimeUpdate = () => controller.handleTimeUpdate(audio);
+    const onSeeking = () => controller.handleSeeking(audio);
+    const onWaiting = () => {
+      controller.handleStall(audio);
+      controller.handleTimeUpdate(audio);
+    };
+
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('seeking', onSeeking);
+    audio.addEventListener('waiting', onWaiting);
+
+    return () => {
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+      audio.removeEventListener('seeking', onSeeking);
+      audio.removeEventListener('waiting', onWaiting);
+      controller.destroy(audio);
+      controllerRef.current = null;
+    };
+  }, [src.url, src.protocol, audioRef, onError, onSourceInvalid]);
+};

@@ -1,0 +1,89 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Badge > (Snapshot) renders all variants 1`] = `
+<div>
+  <div
+    class="flex flex-col gap-4"
+  >
+    <div
+      class="flex gap-2"
+    >
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap size-2.5 rounded-full surface-accent-green"
+      />
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap size-2.5 rounded-full surface-accent-cyan"
+      />
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap size-2.5 rounded-full surface-accent-orange"
+      />
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap size-2.5 rounded-full surface-accent-red"
+      />
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap size-2.5 rounded-full surface-accent-yellow"
+      />
+    </div>
+    <div
+      class="flex gap-2"
+    >
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap size-2.5 rounded-full animate-pulse surface-accent-green"
+      />
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap size-2.5 rounded-full animate-pulse surface-accent-cyan"
+      />
+    </div>
+    <div
+      class="flex gap-2"
+    >
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold surface-accent-green"
+      >
+        NEW
+      </span>
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold surface-accent-cyan"
+      >
+        Update
+      </span>
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold surface-accent-orange"
+      >
+        Beta
+      </span>
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold surface-accent-red"
+      >
+        Error
+      </span>
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold surface-accent-yellow"
+      >
+        Warning
+      </span>
+    </div>
+    <div
+      class="flex gap-2"
+    >
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold animate-pulse surface-accent-green"
+      >
+        Live
+      </span>
+    </div>
+    <div
+      class="flex gap-2"
+    >
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap size-2.5 rounded-full surface-accent-green"
+      />
+      <span
+        class="border-border inline-flex items-center justify-center border-(length:--border-width) whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold surface-accent-cyan custom-class"
+      >
+        Custom
+      </span>
+    </div>
+  </div>
+</div>
+`;
