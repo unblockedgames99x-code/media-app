@@ -54,7 +54,7 @@ jobs:
       - name: Check release version
         run: node _scripts/check-release-version.mjs
       - name: Check packaged runtime verification
-        run: node --test _scripts/cdp.test.mjs
+        run: node --test _scripts/cdp.test.mjs _scripts/windows-input-test.test.mjs
       - uses: pnpm/action-setup@v6
       - uses: dtolnay/rust-toolchain@stable
         with:

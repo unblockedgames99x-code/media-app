@@ -7,12 +7,15 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { connect, delay, freePort } from './cdp.mjs';
+import { createWindowsInputTest } from './windows-input-test.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { values } = parseArgs({ options: {
   arch: { type: 'string', default: process.arch },
   target: { type: 'string' },
   executable: { type: 'string' },
+  'portable-directory': { type: 'string' },
+  'expected-home-heading': { type: 'string', default: 'Goodtube - No ads No sponsors No distractions' },
 } });
 const platform = { win32: 'windows', linux: 'linux', darwin: 'macos' }[process.platform];
 assert(platform, 'Run the packaged smoke on Windows, Linux, or macOS.');
@@ -21,6 +24,11 @@ const configuration = JSON.parse(await readFile(path.join(root, 'packages/player
 const target = values.target;
 const release = path.join(root, 'packages/player/src-tauri/target', ...(target ? [target] : []), 'release');
 let executable = values.executable;
+if (values['portable-directory']) {
+  assert.equal(platform, 'windows', 'Portable-directory selection requires Windows.');
+  assert(!executable, 'Choose an executable or portable directory, not both.');
+  executable = path.join(values['portable-directory'], 'Media.exe');
+}
 if (!executable && platform === 'windows') {
   executable = path.join(root, `build/Media-${configuration.version}-windows-${values.arch}-portable/Media.exe`);
 } else if (!executable && platform === 'macos') {
@@ -278,38 +286,58 @@ try {
     const searchInput = "qa.byClass('searchInput')[0]?.getElementsByTagName('input')[0]";
     await video.until(`(()=>{const input=${searchInput};if(!input||input.disabled)return false;const bounds=input.getBoundingClientRect();return bounds.width>0&&bounds.height>0})()`);
     const focusState = `(()=>{const input=${searchInput};return {active:document.activeElement===input,documentFocused:document.hasFocus(),value:input.value}})()`;
-    const inputBounds = await video.evaluate(`(()=>{const bounds=(${searchInput}).getBoundingClientRect();return {x:bounds.x+bounds.width/2,y:bounds.y+bounds.height/2,width:bounds.width,height:bounds.height}})()`);
+    const inputBounds = await video.evaluate(`(()=>{const bounds=(${searchInput}).getBoundingClientRect();return {x:bounds.x+bounds.width/2,y:bounds.y+bounds.height/2,width:bounds.width,height:bounds.height,viewportWidth:innerWidth,viewportHeight:innerHeight,devicePixelRatio}})()`);
     report.videoInputFocus = {
-      transport: 'Chromium DevTools mouse and keyboard events',
+      transport: 'Win32 SendInput mouse and virtual keyboard events; Chromium DevTools read-only assertions',
       bounds: inputBounds,
       before: await video.evaluate(focusState),
+      hostWindow: inspection.parent_hwnd,
+      childWindow: inspection.hwnd,
+      hostPid: application.pid,
+      enginePid: inspection.pid,
+      actions: [],
     };
     assert.equal(report.videoInputFocus.before.value, '', 'The fresh video search field is not empty.');
-    const inputPoint = { x: inputBounds.x, y: inputBounds.y };
-    await video.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...inputPoint });
-    await video.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...inputPoint, button: 'left', clickCount: 1 });
-    await video.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...inputPoint, button: 'left', clickCount: 1 });
-    report.videoInputFocus.afterClick = await video.evaluate(focusState);
-    await video.until(`document.activeElement===(${searchInput})&&document.hasFocus()`, 5000);
-    report.videoInputFocus.afterClick = await video.evaluate(focusState);
-    assert.equal(report.videoInputFocus.afterClick.active, true, 'Clicking the video search field did not activate it.');
-    assert.equal(report.videoInputFocus.afterClick.documentFocused, true, 'The visible embedded video document did not gain keyboard focus.');
-    const typedText = 'focus';
-    for (const character of typedText) {
-      const key = { key: character, code: `Key${character.toUpperCase()}`, windowsVirtualKeyCode: character.toUpperCase().charCodeAt(0) };
-      await video.send('Input.dispatchKeyEvent', { type: 'keyDown', ...key, text: character, unmodifiedText: character });
-      await video.send('Input.dispatchKeyEvent', { type: 'keyUp', ...key });
+    const windowsInput = createWindowsInputTest();
+    try {
+      report.videoInputFocus.nativeActivation = await windowsInput.send('begin', {
+        hostWindow: inspection.parent_hwnd,
+        childWindow: inspection.hwnd,
+        hostProcess: application.pid,
+        engineProcess: inspection.pid,
+      });
+      report.videoInputFocus.nativeClick = await windowsInput.send('click', {
+        horizontal: inputBounds.x / inputBounds.viewportWidth,
+        vertical: inputBounds.y / inputBounds.viewportHeight,
+      });
+      await video.until(`document.activeElement===(${searchInput})`, 5000);
+      report.videoInputFocus.afterClick = await video.evaluate(focusState);
+      report.videoInputFocus.nativeAfterClick = await windowsInput.send('snapshot');
+      for (const [action, expected] of [['type-focus', 'focus'], ['edit-focus', 'ocus'], ['replace-media', 'media'], ['clear', '']]) {
+        const entry = { action, expected, nativeAfterSend: await windowsInput.send(action) };
+        report.videoInputFocus.actions.push(entry);
+        await video.until(`(${searchInput}).value===${JSON.stringify(expected)}`, 5000);
+        entry.dom = await video.evaluate(focusState);
+        entry.native = await windowsInput.send('snapshot');
+        assert.equal(entry.dom.value, expected, `Video search did not receive Windows keyboard action: ${action}.`);
+        assert.equal(entry.dom.active, true, 'The video search field lost focus while editing.');
+        assert.equal(entry.dom.documentFocused, true, 'The embedded video document lost keyboard focus while editing.');
+      }
+      report.videoInputFocus.passed = true;
+    } finally {
+      try {
+        report.videoInputFocus.finalNative = await windowsInput.send('snapshot');
+        report.videoInputFocus.finalDom = await video.evaluate(focusState);
+      } catch (error) {
+        report.videoInputFocus.finalInspectionError = error.message;
+      }
+      await windowsInput.close();
     }
-    report.videoInputFocus.afterKeys = await video.evaluate(focusState);
-    assert.equal(report.videoInputFocus.afterKeys.value, typedText, 'Video search did not receive dispatched keyboard input.');
-    assert.equal(report.videoInputFocus.afterKeys.active, true, 'The video search field lost focus while typing.');
-    assert.equal(report.videoInputFocus.afterKeys.documentFocused, true, 'The embedded video document lost keyboard focus while typing.');
-    report.videoInputFocus.passed = true;
   }
 
   stage('video-home-appearance');
   await video.evaluate("location.hash='#/home'");
-  await video.until("qa.byClass('homeIntro')[0]?.getElementsByTagName('h1')[0]?.textContent.trim()==='Goodtube - Noads No sponsors No distractions'");
+  await video.until(`qa.byClass('homeIntro')[0]?.getElementsByTagName('h1')[0]?.textContent.trim()===${JSON.stringify(values['expected-home-heading'])}`);
   report.videoHome = await video.evaluate("(()=>{const intro=qa.byClass('homeIntro')[0];return {heading:intro.getElementsByTagName('h1')[0].textContent.trim(),textAlign:getComputedStyle(intro).textAlign,filters:qa.byClass('feedTab').map(button=>button.textContent.trim()),refresh:qa.byClass('refreshButton')[0]?.textContent.trim()}})()");
   assert.equal(report.videoHome.textAlign, 'center', 'The video home heading is not centered.');
   assert.equal(report.videoHome.filters.length, 4, 'The video feed filters are missing.');
@@ -332,7 +360,7 @@ try {
   report.childExitedWithHost = true;
   report.passed = true;
   stage('complete');
-  process.stdout.write(`Packaged ${platform} ${values.arch} runtime passed: video startup, workspace navigation, ${platform === 'windows' ? 'native embedding and Chromium keyboard input' : 'Music return and Videos reopen'}, child cleanup${platform === 'linux' ? ', renderer sandbox' : ''}.\n`);
+  process.stdout.write(`Packaged ${platform} ${values.arch} runtime passed: video startup, workspace navigation, ${platform === 'windows' ? 'native embedding and Windows keyboard routing' : 'Music return and Videos reopen'}, child cleanup${platform === 'linux' ? ', renderer sandbox' : ''}.\n`);
 } catch (error) {
   report.passed = false;
   report.error = launchError?.message ?? error.message;
