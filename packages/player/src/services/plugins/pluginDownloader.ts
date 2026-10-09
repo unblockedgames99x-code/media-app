@@ -9,6 +9,7 @@ const DOWNLOADS_DIR = 'plugins/.downloads';
 type DownloadPluginOptions = {
   pluginId: string;
   downloadUrl: string;
+  timeoutSeconds?: number;
 };
 
 const getDownloadsDir = async (): Promise<string> => {
@@ -20,13 +21,14 @@ const getDownloadsDir = async (): Promise<string> => {
 export const downloadAndExtractPlugin = async ({
   pluginId,
   downloadUrl,
+  timeoutSeconds,
 }: DownloadPluginOptions): Promise<string> => {
   const downloadsDir = await getDownloadsDir();
   const zipPath = await join(downloadsDir, `${pluginId}.zip`);
   const extractPath = await join(downloadsDir, pluginId);
   const relativeZipPath = await join(DOWNLOADS_DIR, `${pluginId}.zip`);
 
-  await downloadFile(downloadUrl, zipPath);
+  await downloadFile(downloadUrl, zipPath, timeoutSeconds);
   await extractZip(zipPath, extractPath);
   await remove(relativeZipPath, { baseDir: BaseDirectory.AppData });
 

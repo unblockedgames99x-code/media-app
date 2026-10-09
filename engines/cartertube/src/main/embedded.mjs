@@ -72,6 +72,11 @@ export function createWorkspaceController (window, pause) {
   let revision = 0
   return {
     get revision () { return revision },
+    focusCurrent: requestedRevision => {
+      if (window.isDestroyed() || requestedRevision !== revision || !window.isVisible()) return { focused: false }
+      window.focus()
+      return { focused: true }
+    },
     returnToMusic: () => {
       if (window.isDestroyed()) return
       revision++
@@ -131,7 +136,7 @@ export async function createEmbeddedServer (config, actions) {
     }
     const route = request.url
     const isStatus = route === '/status'
-    if (!isStatus && !['/pause', '/theme', '/appearance', '/navigate', '/visibility', '/shutdown'].includes(route)) {
+    if (!isStatus && !['/pause', '/theme', '/appearance', '/navigate', '/visibility', '/focus', '/shutdown'].includes(route)) {
       reply(404, { error: 'Unknown command' })
       return
     }
@@ -186,6 +191,16 @@ export async function createEmbeddedServer (config, actions) {
           return
         }
         reply(200, await actions.visibility(visibility.visible, visibility.revision))
+      } else if (route === '/focus') {
+        let returnRevision
+        try {
+          returnRevision = JSON.parse(body).returnRevision
+          if (!Number.isSafeInteger(returnRevision) || returnRevision < 0) throw new Error('Invalid return revision')
+        } catch {
+          reply(400, { error: 'Invalid return revision' })
+          return
+        }
+        reply(200, await actions.focus(returnRevision))
       } else if (route === '/pause') {
         reply(200, await actions.pause())
       } else if (route === '/status') {

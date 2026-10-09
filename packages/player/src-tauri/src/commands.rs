@@ -98,15 +98,23 @@ pub fn extract_zip(zip_path: PathBuf, dest_path: PathBuf) -> Result<(), String> 
 
 #[command]
 #[specta::specta]
-pub async fn download_file(url: String, dest_path: PathBuf) -> Result<(), String> {
+pub async fn download_file(
+    url: String,
+    dest_path: PathBuf,
+    timeout_seconds: Option<u64>,
+) -> Result<(), String> {
     use std::time::Duration;
     use tokio::io::AsyncWriteExt;
 
-    async fn inner(url: &str, dest_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    async fn inner(
+        url: &str,
+        dest_path: &Path,
+        timeout_seconds: u64,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         log::info!("Downloading {} to {:?}", url, dest_path);
 
         let client = reqwest::Client::builder()
-            .timeout(Duration::from_secs(300))
+            .timeout(Duration::from_secs(timeout_seconds))
             .connect_timeout(Duration::from_secs(30))
             .build()?;
 
@@ -133,7 +141,13 @@ pub async fn download_file(url: String, dest_path: PathBuf) -> Result<(), String
         Ok(())
     }
 
-    inner(&url, &dest_path).await.map_err(|e| {
+    inner(
+        &url,
+        &dest_path,
+        timeout_seconds.unwrap_or(300).clamp(1, 300),
+    )
+    .await
+    .map_err(|e| {
         log::error!("download_file failed for {}: {}", url, e);
         e.to_string()
     })

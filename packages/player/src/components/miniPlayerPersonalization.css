@@ -1,0 +1,84 @@
+#nuke-mp-panel[data-media-mini-player='true'] {
+  font-family: var(--font-family) !important;
+}
+
+#nuke-mp-panel[data-media-mini-player='true'] button,
+#nuke-mp-panel[data-media-mini-player='true'] input {
+  font-family: inherit;
+}
+
+#nuke-mp-panel[data-media-mini-player='true'] [data-media-mini-identity='true'] {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  font-family: var(--font-family-heading) !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#nuke-mp-panel[data-media-mini-player='true'] [data-media-mini-identity='true'] img {
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+#nuke-mp-panel[data-media-mini-player='true'] #nuke-mp-header > :last-child {
+  margin-inline-start: auto;
+}
+
+#nuke-mp-panel[data-media-theme-sync='true'] {
+  --nuke-mp-accent: var(--primary) !important;
+  border-width: var(--border-width) !important;
+  border-color: var(--border) !important;
+  background-color: color-mix(in srgb, var(--card) 65%, transparent) !important;
+  color: var(--foreground) !important;
+}
+
+#nuke-mp-panel[data-media-theme-sync='true']:not(.fullscreen-mode) {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-x) var(--shadow-y) 0 var(--border) !important;
+}
+
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-art-overlay {
+  background-color: color-mix(in srgb, var(--background) 80%, transparent) !important;
+}
+
+#nuke-mp-panel[data-media-theme-sync='true'] #nuke-mp-settings-view,
+#nuke-mp-panel[data-media-theme-sync='true'] #nuke-mp-queue-dropdown {
+  border-color: var(--border) !important;
+  background-color: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+}
+
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-btn-icon-card,
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-card-title,
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-settings-title,
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-setting-row,
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-timestamps-row {
+  color: var(--foreground) !important;
+}
+
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-card-artist,
+#nuke-mp-panel[data-media-theme-sync='true'] .lyric-line:not(.active) {
+  color: var(--muted-foreground) !important;
+}
+
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-btn-play-circle,
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-btn-done {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-queue-item span {
+  color: inherit !important;
+}
+
+#nuke-mp-panel[data-media-theme-sync='true'] .nuke-slider::-webkit-slider-thumb {
+  background-color: var(--primary) !important;
+}
+
+#nuke-mp-panel[data-media-theme-sync='true'] :focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}

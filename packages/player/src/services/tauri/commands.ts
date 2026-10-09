@@ -21,8 +21,9 @@ export const extractZip = async (
 export const downloadFile = async (
   url: string,
   destPath: string,
+  timeoutSeconds?: number,
 ): Promise<void> => {
-  await invoke('download_file', { url, destPath });
+  await invoke('download_file', { url, destPath, timeoutSeconds });
 };
 
 export const ytdlpEnsureInstalled = async (): Promise<boolean> => {

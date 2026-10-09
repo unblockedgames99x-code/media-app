@@ -57,7 +57,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - uses: actions/cache@v6
+      - uses: actions/cache/restore@v6
+        id: rust-cache
         with:
           path: |
             ~/.cargo/registry
@@ -84,15 +85,31 @@ jobs:
         run: pnpm media:build --arch ${{ matrix.arch }} --target ${{ matrix.target }}
       - name: Check native integration contracts
         working-directory: packages/player/src-tauri
-        run: cargo test video_engine --lib --target ${{ matrix.target }}
+        run: |
+          cargo test --release video_engine --lib --target ${{ matrix.target }}
+          cargo test --release deep_links --lib --target ${{ matrix.target }}
+      - uses: actions/cache/save@v6
+        if: steps.rust-cache.outputs.cache-hit != 'true'
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/player/src-tauri/target
+          key: ${{ steps.rust-cache.outputs.cache-primary-key }}
       - name: Validate bundled video runtime
         run: node _scripts/verify-release.mjs --arch ${{ matrix.arch }} --target ${{ matrix.target }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Media-${{ matrix.platform }}-${{ matrix.arch }}
+          path: build/releases/*
+          if-no-files-found: error
+          compression-level: 0
       - name: Open packaged application and check video workspace
         if: runner.os != 'Linux'
         run: node _scripts/smoke-portable.mjs --arch ${{ matrix.arch }} --target ${{ matrix.target }}
       - name: Open packaged Linux application and check renderer sandbox
         if: runner.os == 'Linux'
-        run: xvfb-run -a node _scripts/smoke-portable.mjs --arch ${{ matrix.arch }} --target ${{ matrix.target }}
+        run: dbus-run-session -- xvfb-run -a node _scripts/smoke-portable.mjs --arch ${{ matrix.arch }} --target ${{ matrix.target }}
       - name: Save runtime verification report
         if: always()
         uses: actions/upload-artifact@v7
@@ -100,12 +117,6 @@ jobs:
           name: Runtime-${{ matrix.platform }}-${{ matrix.arch }}
           path: build/verify/${{ matrix.platform }}-${{ matrix.arch }}/runtime.*
           if-no-files-found: ignore
-      - uses: actions/upload-artifact@v7
-        with:
-          name: Media-${{ matrix.platform }}-${{ matrix.arch }}
-          path: build/releases/*
-          if-no-files-found: error
-          compression-level: 0
 
   publish:
     name: Publish tagged release

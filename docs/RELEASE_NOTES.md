@@ -2,6 +2,8 @@ A personal music and video workspace with a neutral interface and a first-launch
 
 Choose your own name, fonts, colors, layout, and sound preferences in Settings. Music plugins, playlists, library tools, video subscriptions, recommendations, downloads, captions, and playback options remain available.
 
+New profiles start with Spotify for music information and YouTube for streaming. The light/dark toggle follows your selected colors and saves your choice. The miniplayer uses your chosen name, logo, fonts, and theme, and updates when you change them.
+
 ## Choose a download
 
 | Your computer | File |

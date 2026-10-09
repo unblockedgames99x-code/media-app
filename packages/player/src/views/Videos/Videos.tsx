@@ -6,6 +6,7 @@ import { FC, useEffect, useRef, useState } from 'react';
 import { useTranslation } from '@nuclearplayer/i18n';
 import { Button } from '@nuclearplayer/ui';
 
+import { getPersonalizationGradientEnd } from '../../services/personalizationPalette';
 import { usePersonalizationStore } from '../../stores/personalizationStore';
 import { useSettingsModalStore } from '../../stores/settingsModalStore';
 import { useSoundStore } from '../../stores/soundStore';
@@ -73,6 +74,11 @@ export const Videos: FC = () => {
   const background = usePersonalizationStore(
     (store) => store.settings.background,
   );
+  const palette = usePersonalizationStore((store) => store.settings.palette);
+  const gradientEnd = getPersonalizationGradientEnd({
+    palette,
+    background,
+  });
 
   useEffect(() => {
     if (state !== 'ready' || settingsOpen || !setupCompleted) {
@@ -85,7 +91,7 @@ export const Videos: FC = () => {
           logoDataUrl: identity.logoDataUrl,
           backgroundImage: background.imageDataUrl,
           backgroundStyle: background.style,
-          gradientEnd: background.gradientEnd,
+          gradientEnd,
           gradientAngle: String(background.gradientAngle),
           imageOpacity: String(background.imageOpacity),
           blur: String(background.blur),
@@ -93,7 +99,7 @@ export const Videos: FC = () => {
       }).catch(() => {});
     }, 100);
     return () => clearTimeout(timer);
-  }, [state, identity, background, settingsOpen, setupCompleted]);
+  }, [state, identity, background, gradientEnd, settingsOpen, setupCompleted]);
 
   useEffect(() => {
     if (

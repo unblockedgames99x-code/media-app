@@ -5,11 +5,15 @@ import { Logger } from '../services/logger';
 export class ApiClient {
   constructor(protected readonly baseUrl: string) {}
 
-  protected async fetch<T>(path: string, schema: z.ZodType<T>): Promise<T> {
+  protected async fetch<T>(
+    path: string,
+    schema: z.ZodType<T>,
+    signal?: AbortSignal,
+  ): Promise<T> {
     const url = `${this.baseUrl}${path}?t=${Date.now()}`;
     Logger.http.debug(`GET ${url}`);
 
-    const response = await fetch(url);
+    const response = await fetch(url, signal ? { signal } : undefined);
 
     if (!response.ok) {
       Logger.http.warn(`GET ${url} -> ${response.status}`);

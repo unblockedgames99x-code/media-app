@@ -100,6 +100,7 @@ export async function startEmbeddedHost({ app, window, config, ipcMain, windows,
       return { navigated: true, path: destination }
     },
     visibility: createVisibilityController(window, pause, workspaceHandoff),
+    focus: returnRevision => workspace.focusCurrent(returnRevision),
     shutdown: () => app.quit()
   })
   window.webContents.on('did-finish-load', () => {

@@ -338,6 +338,9 @@ fn start_engine(
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null());
+    if std::env::var_os("CARTERMEDIA_VIDEO_DEBUG_PORT").is_some() {
+        command.stderr(Stdio::inherit());
+    }
     #[cfg(target_os = "linux")]
     command.arg("--disable-setuid-sandbox");
     #[cfg(target_os = "linux")]
@@ -1121,6 +1124,40 @@ pub fn restore_main_workspace(app: &AppHandle) {
     restore_portable_main_workspace(app);
 }
 
+#[cfg(any(target_os = "macos", test))]
+pub fn focus_current_workspace(app: &AppHandle) {
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        let connection = {
+            let state = app.state::<VideoEngineState>();
+            let Ok(slot) = state.inner().0.lock() else {
+                return;
+            };
+            slot.as_ref()
+                .filter(|engine| engine.visible)
+                .and_then(|engine| {
+                    engine.port.map(|port| {
+                        (port, engine.token.clone(), engine.workspace_return_revision)
+                    })
+                })
+        };
+        if let Some((port, token, return_revision)) = connection {
+            if let Err(error) = control(
+                port,
+                &token,
+                "focus",
+                serde_json::json!({ "returnRevision": return_revision }),
+            )
+            .await
+            {
+                log::warn!("Could not focus the video workspace: {error}");
+            }
+        } else {
+            show_music_window(&app, false);
+        }
+    });
+}
+
 #[cfg(any(not(windows), test))]
 fn restore_portable_main_workspace(app: &AppHandle) {
     let app = app.clone();
@@ -1438,7 +1475,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn control_uses_authenticated_loopback_and_forwards_theme_and_visibility_bodies() {
+    async fn control_uses_authenticated_loopback_and_forwards_workspace_bodies() {
         for (endpoint, payload) in [
             (
                 "theme",
@@ -1448,6 +1485,7 @@ mod tests {
                 "visibility",
                 serde_json::json!({ "visible": true, "revision": 12 }),
             ),
+            ("focus", serde_json::json!({ "returnRevision": 3 })),
             (
                 "visibility",
                 serde_json::json!({ "visible": false, "revision": 13 }),

@@ -1,4 +1,11 @@
 {
+  "defaultSources": {
+    "sources": "Spotify and YouTube",
+    "installing": "Setting up {{source}}…",
+    "available": "You can keep using the app.",
+    "error": "Could not finish setting up music sources. Check your connection and retry.",
+    "retry": "Retry"
+  },
   "common": {
     "app": {
       "name": "Media",

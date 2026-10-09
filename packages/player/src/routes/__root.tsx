@@ -40,6 +40,7 @@ import { ConnectedStreamVerification } from '../components/ConnectedStreamVerifi
 import { ConnectedTitleBar } from '../components/ConnectedTitleBar';
 import { ConnectedTopBar } from '../components/ConnectedTopBar';
 import { ConnectedVideoNavigation } from '../components/ConnectedVideoNavigation';
+import { DefaultSourcesStatus } from '../components/DefaultSourcesStatus';
 import { DevTools } from '../components/DevTools';
 import { FlatpakWarningBanner } from '../components/FlatpakWarningBanner';
 import { PersonalizationController } from '../components/PersonalizationController';
@@ -136,6 +137,7 @@ const RootComponent = () => {
           <ConnectedTitleBar />
           <FlatpakWarningBanner />
           <ConnectedTopBar />
+          {!videosOpen && <DefaultSourcesStatus />}
         </div>
       )}
       {!isStartingUp && <StreamResolver />}

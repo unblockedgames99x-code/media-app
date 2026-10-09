@@ -3,6 +3,7 @@ import { FC, useEffect, useRef } from 'react';
 
 import { playInterfaceSound } from '../services/interfaceSounds';
 import { getPersonalizationVariables } from '../services/personalization';
+import { getPersonalizationGradientEnd } from '../services/personalizationPalette';
 import { useLayoutStore } from '../stores/layoutStore';
 import { usePersonalizationStore } from '../stores/personalizationStore';
 
@@ -46,7 +47,7 @@ export const PersonalizationController: FC = () => {
     const values = {
       '--personal-wallpaper':
         background.style === 'gradient'
-          ? `linear-gradient(${background.gradientAngle}deg, var(--background), ${background.gradientEnd})`
+          ? `linear-gradient(${background.gradientAngle}deg, var(--background), ${getPersonalizationGradientEnd(settings)})`
           : background.style === 'image' && background.imageDataUrl
             ? `url("${background.imageDataUrl}")`
             : 'none',
@@ -62,7 +63,7 @@ export const PersonalizationController: FC = () => {
         style.setProperty(key, value);
       }
     }
-  }, [settings.background]);
+  }, [settings.background, settings.palette]);
 
   useEffect(() => {
     document.title = settings.identity.displayName || 'Media';

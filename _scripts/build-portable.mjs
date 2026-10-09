@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { cp, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, realpath, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -18,6 +18,7 @@ const { values } = parseArgs({
     target: { type: 'string' },
     'skip-engine': { type: 'boolean', default: false },
     'no-bundle': { type: 'boolean', default: false },
+    'portable-directory': { type: 'string' },
     plan: { type: 'boolean', default: false },
   },
 });
@@ -56,6 +57,30 @@ const engineExecutable = path.join(unpackedEngine, ...{
   macos: ['media-video.app', 'Contents', 'MacOS', 'media-video'],
 }[platform]);
 const releaseDirectory = path.join(root, 'build', 'releases');
+const releasePrefix = `Media-${version}-${platform}-${values.arch}`;
+const buildDirectory = path.join(root, 'build');
+const portableDirectory = platform === 'windows'
+  ? path.resolve(root, values['portable-directory'] ?? path.join(buildDirectory, `${releasePrefix}-portable`))
+  : undefined;
+if (values['portable-directory'] !== undefined) {
+  if (!portableDirectory) throw new Error('--portable-directory is available for Windows builds.');
+  const isInsideBuild = (parent, directory) => {
+    const relative = path.relative(parent, directory);
+    return relative !== '' && relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+  };
+  const resolveExistingPath = async (directory) => {
+    try {
+      return await realpath(directory);
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      return path.join(await resolveExistingPath(path.dirname(directory)), path.basename(directory));
+    }
+  };
+  if (!isInsideBuild(buildDirectory, portableDirectory)
+    || !isInsideBuild(await resolveExistingPath(buildDirectory), await resolveExistingPath(portableDirectory))) {
+    throw new Error('--portable-directory must be a directory inside the repository build folder, not the build folder itself.');
+  }
+}
 const bundleTargets = { windows: 'nsis', linux: 'appimage,deb', macos: 'app,dmg' }[platform];
 const overlay = {
   productName: 'Media',
@@ -98,7 +123,7 @@ if (platform === 'macos') {
   };
 }
 
-const plan = { platform, arch: values.arch, target, version, engineExecutable, bundleTargets, releaseDirectory, overlay };
+const plan = { platform, arch: values.arch, target, version, engineExecutable, bundleTargets, releaseDirectory, portableDirectory, overlay };
 if (values.plan) {
   process.stdout.write(`${JSON.stringify(plan, null, 2)}\n`);
   process.exit(0);
@@ -146,11 +171,8 @@ run(process.execPath, tauriArguments, playerRoot, { CSC_IDENTITY_AUTO_DISCOVERY:
 
 await mkdir(releaseDirectory, { recursive: true });
 const nativeRelease = path.join(tauriRoot, 'target', ...(explicitTarget ? [target] : []), 'release');
-const releasePrefix = `Media-${version}-${platform}-${values.arch}`;
-let portableDirectory;
-if (platform === 'windows') {
-  const portable = path.join(root, 'build', `${releasePrefix}-portable`);
-  portableDirectory = portable;
+if (portableDirectory) {
+  const portable = portableDirectory;
   await mkdir(portable, { recursive: true });
   await cp(path.join(nativeRelease, 'Media.exe'), path.join(portable, 'Media.exe'));
   await cp(unpackedEngine, path.join(portable, 'video-engine'), { recursive: true, force: true });

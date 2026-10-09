@@ -64,8 +64,8 @@ class PluginRegistryApi extends ApiClient {
     super('https://cdn.jsdelivr.net/gh/NuclearPlayer/plugin-registry@master');
   }
 
-  async getPlugins(): Promise<MarketplacePlugin[]> {
-    const registry = await this.fetch('/plugins.json', RegistrySchema);
+  async getPlugins(signal?: AbortSignal): Promise<MarketplacePlugin[]> {
+    const registry = await this.fetch('/plugins.json', RegistrySchema, signal);
     return registry.plugins;
   }
 }
@@ -75,7 +75,10 @@ class GitHubReleasesApi extends ApiClient {
     super('https://api.github.com');
   }
 
-  async getLatestRelease(repo: string): Promise<PluginRelease> {
+  async getLatestRelease(
+    repo: string,
+    signal?: AbortSignal,
+  ): Promise<PluginRelease> {
     if (!/^[^/]+\/[^/]+$/.test(repo)) {
       throw new Error(`Invalid repo format: ${repo}`);
     }
@@ -83,6 +86,7 @@ class GitHubReleasesApi extends ApiClient {
     const release = await this.fetch(
       `/repos/${repo}/releases/latest`,
       GitHubReleaseSchema,
+      signal,
     );
 
     const asset = release.assets.find((a) => a.name === PLUGIN_ASSET_NAME);
@@ -104,12 +108,12 @@ class PluginMarketplaceApi {
   private registry = new PluginRegistryApi();
   private releases = new GitHubReleasesApi();
 
-  getPlugins() {
-    return this.registry.getPlugins();
+  getPlugins(signal?: AbortSignal) {
+    return this.registry.getPlugins(signal);
   }
 
-  getLatestRelease(repo: string) {
-    return this.releases.getLatestRelease(repo);
+  getLatestRelease(repo: string, signal?: AbortSignal) {
+    return this.releases.getLatestRelease(repo, signal);
   }
 }
 

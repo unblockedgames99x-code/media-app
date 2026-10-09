@@ -187,7 +187,7 @@ pub fn run() {
         .run(|app, event| match event {
             tauri::RunEvent::Exit => video_engine::shutdown(app),
             #[cfg(target_os = "macos")]
-            tauri::RunEvent::Reopen { .. } => video_engine::restore_main_workspace(app),
+            tauri::RunEvent::Reopen { .. } => video_engine::focus_current_workspace(app),
             _ => {}
         });
 }

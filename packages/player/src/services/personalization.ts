@@ -1,4 +1,5 @@
 import type { PersonalizationSettings } from '../stores/personalizationStore';
+import { getPersonalizationPalette } from './personalizationPalette';
 
 const fontFamilies = {
   system:
@@ -11,7 +12,8 @@ const fontFamilies = {
 export const getPersonalizationVariables = (
   settings: PersonalizationSettings,
 ) => {
-  const { typography, palette, layout, sounds, audio } = settings;
+  const { typography, layout, sounds, audio } = settings;
+  const palette = getPersonalizationPalette(settings.palette);
   const bodyFont =
     typography.bodyFont === 'custom'
       ? typography.customBodyFont || fontFamilies.system

@@ -7,6 +7,7 @@ import { I18nextProvider } from 'react-i18next';
 import { i18n } from '@nuclearplayer/i18n';
 import { Platform, PlatformProvider } from '@nuclearplayer/ui';
 
+import { MiniPlayerPersonalization } from './components/MiniPlayerPersonalization';
 import { routeTree } from './routeTree.gen';
 
 const router = createRouter({ routeTree });
@@ -28,6 +29,7 @@ const App: FC<AppProps> = ({ routerProp, queryClientProp }) => {
     <PlatformProvider platform={platform() as Platform}>
       <I18nextProvider i18n={i18n}>
         <QueryClientProvider client={queryClientProp ?? defaultQueryClient}>
+          <MiniPlayerPersonalization />
           <RouterProvider router={routerProp ?? router} />
         </QueryClientProvider>
       </I18nextProvider>

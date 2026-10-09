@@ -3,6 +3,10 @@ import { CSSProperties, FC } from 'react';
 
 import { useTranslation } from '@nuclearplayer/i18n';
 
+import {
+  getPersonalizationGradientEnd,
+  getPersonalizationPalette,
+} from '../../services/personalizationPalette';
 import { PersonalizationSettings } from '../../stores/personalizationStore';
 
 export const personalizationFont = (
@@ -21,7 +25,8 @@ export const PersonalizationPreview: FC<{
   settings: PersonalizationSettings;
 }> = ({ settings }) => {
   const { t } = useTranslation('personalization');
-  const { palette, typography, layout, identity, background } = settings;
+  const { typography, layout, identity, background } = settings;
+  const palette = getPersonalizationPalette(settings.palette);
   const radius =
     layout.artworkShape === 'circle'
       ? '50%'
@@ -42,7 +47,7 @@ export const PersonalizationPreview: FC<{
     borderRadius: layout.cornerRadius,
     backgroundImage:
       background.style === 'gradient'
-        ? `linear-gradient(${background.gradientAngle}deg, ${palette.background}, ${background.gradientEnd})`
+        ? `linear-gradient(${background.gradientAngle}deg, ${palette.background}, ${getPersonalizationGradientEnd(settings)})`
         : undefined,
   };
   return (

@@ -19,6 +19,7 @@ import { loadMarketplaceThemes } from './services/marketplaceThemeDirService';
 import { initMcpHandler } from './services/mcp';
 import { initMpdHandler } from './services/mpd';
 import { initPlaybackEventBridge } from './services/playbackEventBridge';
+import { initializeDefaultSources } from './services/plugins/defaultSources';
 import { hydratePluginsFromRegistry } from './services/plugins/pluginBootstrap';
 import { ytdlpEnsureInstalled } from './services/tauri/commands';
 import { initializeFavoritesStore } from './stores/favoritesStore';
@@ -27,6 +28,7 @@ import {
   initializePersonalization,
 } from './stores/personalizationStore';
 import { initializePlaylistStore } from './stores/playlistStore';
+import { initializeProvidersStore } from './stores/providersStore';
 import { initializeQueueStore } from './stores/queueStore';
 import { initializeSettingsStore } from './stores/settingsStore';
 import { initializeShortcutsStore } from './stores/shortcutsStore';
@@ -59,7 +61,9 @@ const initThemes = () =>
     .then(() => applyThemeFromSettingsIfAny());
 
 const startBackgroundTasks = () => {
-  void hydratePluginsFromRegistry();
+  void initializeProvidersStore()
+    .then(() => hydratePluginsFromRegistry())
+    .then(() => initializeDefaultSources());
   void useUpdaterStore.getState().checkForUpdate();
   void ytdlpEnsureInstalled();
 };

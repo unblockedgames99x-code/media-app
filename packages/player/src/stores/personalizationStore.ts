@@ -3,6 +3,11 @@ import { z } from 'zod';
 import { create } from 'zustand';
 import { persist, PersistStorage, StorageValue } from 'zustand/middleware';
 
+import {
+  getPersonalizationGradientEnd,
+  getPersonalizationPalette,
+} from '../services/personalizationPalette';
+
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 const fontChoice = z.enum(['system', 'sans', 'serif', 'mono', 'custom']);
 const fontFamily = z
@@ -40,6 +45,7 @@ export const personalizationSchema = z
     palette: z
       .object({
         enabled: z.boolean(),
+        mode: z.enum(['original', 'light', 'dark']).default('original'),
         background: color,
         surface: color,
         foreground: color,
@@ -115,6 +121,7 @@ export const defaultPersonalization: PersonalizationSettings = {
   },
   palette: {
     enabled: true,
+    mode: 'original',
     background: '#171719',
     surface: '#242426',
     foreground: '#ededf0',
@@ -376,12 +383,37 @@ export const usePersonalizationStore = create<PersonalizationState>()(
       },
       updateSection: (section, changes) => {
         const previous = get().settings;
+        const editingColors =
+          section === 'palette' &&
+          Object.keys(changes).some(
+            (key) => key !== 'enabled' && key !== 'mode',
+          );
+        const editingGradient =
+          section === 'background' && 'gradientEnd' in changes;
+        const palette = getPersonalizationPalette(previous.palette);
+        const base = editingColors
+          ? { ...palette, mode: 'original' }
+          : previous[section];
         const result = personalizationSchema.shape[section].safeParse({
-          ...previous[section],
+          ...base,
           ...changes,
         });
         if (result.success) {
-          set({ settings: { ...previous, [section]: result.data } });
+          set({
+            settings: {
+              ...previous,
+              ...(editingColors || editingGradient
+                ? {
+                    palette: { ...palette, mode: 'original' as const },
+                    background: {
+                      ...previous.background,
+                      gradientEnd: getPersonalizationGradientEnd(previous),
+                    },
+                  }
+                : {}),
+              [section]: result.data,
+            },
+          });
         }
       },
       applyPreset: (presetId) => {

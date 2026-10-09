@@ -12,6 +12,7 @@ import {
   coreSettingsHost,
   createPluginSettingsHost,
 } from '../services/settingsHost';
+import { usePersonalizationStore } from '../stores/personalizationStore';
 import {
   initializeSettingsStore,
   useSettingsStore,
@@ -119,9 +120,12 @@ describe('Settings integration', () => {
     expect(persisted).toBe('fr');
   });
 
-  it('dark mode toggle persists across restarts', async () => {
+  it('the original theme dark mode toggle persists across restarts', async () => {
     await initializeSettingsStore();
     registerBuiltInCoreSettings();
+    usePersonalizationStore
+      .getState()
+      .updateSection('palette', { enabled: false });
 
     render(<App />);
 

@@ -8,6 +8,10 @@ import {
   savePersonalizationProfile,
 } from '../../services/personalizationFiles';
 import {
+  getPersonalizationGradientEnd,
+  getPersonalizationPalette,
+} from '../../services/personalizationPalette';
+import {
   personalizationPresets,
   PersonalizationSettings,
   usePersonalizationStore,
@@ -139,6 +143,7 @@ export const Personalization: FC = () => {
     reset,
     restartSetup,
   } = usePersonalizationStore();
+  const palette = getPersonalizationPalette(settings.palette);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('style');
   const [profileJson, setProfileJson] = useState('');
   const [notice, setNotice] = useState<Notice>(null);
@@ -285,7 +290,7 @@ export const Personalization: FC = () => {
                     <ColorField
                       key={key}
                       label={t(`style.colors.${key}`)}
-                      value={settings.palette[key]}
+                      value={palette[key]}
                       onChange={(value) =>
                         updateSection('palette', { [key]: value })
                       }
@@ -312,7 +317,7 @@ export const Personalization: FC = () => {
                   <>
                     <ColorField
                       label={t('background.gradientEnd')}
-                      value={settings.background.gradientEnd}
+                      value={getPersonalizationGradientEnd(settings)}
                       onChange={(gradientEnd) =>
                         updateSection('background', { gradientEnd })
                       }

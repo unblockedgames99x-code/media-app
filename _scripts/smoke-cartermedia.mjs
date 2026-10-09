@@ -27,6 +27,8 @@ const clickText = async (client, text) => {
 const screenshot = async (client, name) => {
   fs.writeFileSync(path.join(output, name), Buffer.from((await client.send('Page.captureScreenshot', { fromSurface: true, captureBeyondViewport: false, optimizeForSpeed: true })).data, 'base64'));
 };
+const themeToggle = "[...document.getElementsByTagName('button')].find(element=>element.getAttribute('role')==='switch'&&element.getAttribute('aria-label')==='Toggle theme')";
+const themeSnapshot = `(()=>{const style=getComputedStyle(document.documentElement);return{background:style.getPropertyValue('--background').trim(),surface:style.getPropertyValue('--card').trim(),foreground:style.getPropertyValue('--foreground').trim(),accent:style.getPropertyValue('--primary').trim(),border:style.getPropertyValue('--border').trim(),font:getComputedStyle(document.body).fontFamily,dark:${themeToggle}?.getAttribute('aria-checked')}})()`;
 
 try {
   processHandle = spawn(executable, ['--profile', profile], {
@@ -53,6 +55,19 @@ try {
   report.setup = await host.evaluate("({title:document.title,font:getComputedStyle(document.body).fontFamily,accent:getComputedStyle(document.documentElement).getPropertyValue('--primary'),identity:qa.testId('personal-identity')?.textContent})");
   assert(report.setup.font.includes('Space Mono'));
   assert.equal(report.setup.accent.trim(), '#67d9d0');
+  report.themeOriginal = await host.evaluate(themeSnapshot);
+  assert.equal(report.themeOriginal.dark, 'true', 'Ocean must show the dark toggle state');
+  await host.evaluate(`${themeToggle}.click()`);
+  await host.until(`(${themeSnapshot}).background!==${JSON.stringify(report.themeOriginal.background)}&&${themeToggle}?.getAttribute('aria-checked')==='false'`);
+  report.themeLight = await host.evaluate(themeSnapshot);
+  await delay(1000);
+  report.storedLightPalette = JSON.parse(fs.readFileSync(path.join(migration.profile, 'personalization.json'), 'utf8'))['media-personalization'].state.settings.palette;
+  assert.equal(report.storedLightPalette.accent, report.themeOriginal.accent, 'Light mode overwrote the selected accent');
+  assert.equal(report.storedLightPalette.mode, 'light');
+  assert.equal(report.themeLight.font, report.themeOriginal.font, 'Light mode lost the selected font');
+  await host.evaluate(`${themeToggle}.click()`);
+  await host.until(`(${themeSnapshot}).background===${JSON.stringify(report.themeOriginal.background)}&&${themeToggle}?.getAttribute('aria-checked')==='true'`);
+  assert.deepEqual(await host.evaluate(themeSnapshot), report.themeOriginal, 'The light/dark round trip changed the custom palette');
   await host.until("Boolean(qa.testId('search-box'))");
   await delay(5000);
   report.brand = await host.evaluate("({title:document.title,theme:document.documentElement.getAttribute('data-theme'),primary:getComputedStyle(document.documentElement).getPropertyValue('--primary'),text:document.body.innerText.slice(0,500)})");
@@ -106,6 +121,13 @@ try {
   report.videoPersonalization = await video.evaluate("({name:qa.byClass('personalName')[0]?.textContent,font:getComputedStyle(qa.byClass('app')[0]).fontFamily,accent:getComputedStyle(document.documentElement).getPropertyValue('--cm-primary')})");
   assert.equal(report.videoPersonalization.name, 'QA Studio');
   assert.equal(report.videoPersonalization.accent.trim(), '#67d9d0');
+  await host.evaluate(`${themeToggle}.click()`);
+  await host.until(`(${themeSnapshot}).background===${JSON.stringify(report.themeLight.background)}`);
+  await video.until(`getComputedStyle(document.documentElement).getPropertyValue('--cm-background').trim()===${JSON.stringify(report.themeLight.background)}`);
+  report.videoLightTheme = await video.evaluate("({background:getComputedStyle(document.documentElement).getPropertyValue('--cm-background').trim(),accent:getComputedStyle(document.documentElement).getPropertyValue('--cm-primary').trim(),font:getComputedStyle(qa.byClass('app')[0]).fontFamily})");
+  assert.equal(report.videoLightTheme.accent, report.themeLight.accent);
+  assert(report.videoLightTheme.font.includes('Space Mono'));
+  await screenshot(video, 'media-light-video.png');
   assert(report.videoHome.cards > 0);
   assert.equal(report.videoHome.overflow, false);
   await video.evaluate("globalThis.qaFrames=0;globalThis.qaCounting=true;function tick(){qaFrames++;if(qaCounting)requestAnimationFrame(tick)};requestAnimationFrame(tick)");
@@ -228,7 +250,12 @@ try {
   assert.equal(report.restoredPersonalization.setupVisible, false);
   assert.equal(report.restoredPersonalization.title, 'QA Studio');
   assert(report.restoredPersonalization.font.includes('Space Mono'));
-  assert.equal(report.restoredPersonalization.accent.trim(), '#67d9d0');
+  assert.equal(report.restoredPersonalization.accent.trim(), report.themeLight.accent);
+  report.restoredTheme = await host.evaluate(themeSnapshot);
+  assert.deepEqual(report.restoredTheme, report.themeLight, 'The saved light theme did not survive restart');
+  await host.evaluate(`${themeToggle}.click()`);
+  await host.until(`(${themeSnapshot}).background===${JSON.stringify(report.themeOriginal.background)}`);
+  assert.deepEqual(await host.evaluate(themeSnapshot), report.themeOriginal, 'The original palette was not restored after restart');
   await screenshot(host, 'media-personalized-reopened.png');
   report.passed = true;
   report.logs = logs.slice(-1500);

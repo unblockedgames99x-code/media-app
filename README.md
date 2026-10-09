@@ -57,6 +57,7 @@ Only successful builds appear in Releases. All four targets must pass packaging 
 The first launch opens setup. You can change your choices later in **Settings → Make it yours**.
 
 - Start with Neutral, Linen, Ocean, or Terminal, then edit the details.
+- Use the sun / moon switch for a matching light or dark version of your style. Your original colors stay saved, and the brightness choice follows you into Videos and survives reopening the app.
 - Choose your own optional display name and image, or keep both hidden.
 - Customize seven colors, body and heading fonts, text size and weight, and line spacing. Installed font families are supported.
 - Use a solid, gradient, or local image background with adjustable angle, opacity, and blur.
@@ -70,7 +71,9 @@ The Music / Videos switch stays available in both sections. Windows shows both e
 
 Music keeps the plugin marketplace, sources, search, playlists and imports, queue, favorites, lyrics providers, history and statistics, keyboard shortcuts, remote control, MCP, MPD, and its existing preferences. Optional features still need their corresponding plugins.
 
-To start listening on a fresh profile, open **Dashboard → Browse plugins → Go to store**, then install **Bandcamp**. It adds music search and streaming immediately, without restarting. Search for an artist or track, open **Tracks**, and choose a track or **Play all**. Another option is YouTube for playback with Spotify for music metadata.
+Fresh setup automatically installs **Spotify** for music search and metadata and **YouTube** for playback. After setup, search for an artist or track, open **Tracks**, and choose a track or **Play all**. If your connection is unavailable, the app stays open and shows **Retry** for the unfinished source setup. Existing source choices stay saved, and disabling or removing a default plugin does not reinstall it on the next launch.
+
+For optional sources such as **Bandcamp**, open **Settings → Plugins → Store** and choose **Install**. Newly installed sources are available immediately, without restarting; choose them in **Sources**.
 
 Videos keeps search, recommendations, subscriptions and profiles, channels, playlists, history, downloads, captions, SponsorBlock, playback settings, and external-player options. Playback recovery includes bounded requests and a restart option when a video engine stops responding. Service availability and third-party plugins can change independently of this app.
 
