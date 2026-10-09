@@ -118,6 +118,57 @@ describe('Videos workspace', () => {
     await VideosWrapper.videoLinkOpened('/watch/dQw4w9WgXcQ');
   });
 
+  it.each(['/watch/dQw4w9WgXcQ', '/watch/aB_cD-01234'])(
+    'reopens a returned video workspace for %s before the Music route finishes changing',
+    async (path) => {
+      VideosWrapper.openVideoLink('/watch/dQw4w9WgXcQ');
+      VideosWrapper.mount();
+      await VideosWrapper.videoLinkOpened('/watch/dQw4w9WgXcQ');
+      await VideosWrapper.ready();
+      expect(VideosWrapper.engineVisible).toBe(true);
+
+      VideosWrapper.returnToMusicBeforeRouteChanges();
+      expect(VideosWrapper.engineVisible).toBe(false);
+      const finishReopening = VideosWrapper.deferStartup();
+      VideosWrapper.openVideoLink(path);
+      await VideosWrapper.attachmentCount(2);
+      expect(VideosWrapper.navigationCount).toBe(1);
+      expect(VideosWrapper.engineVisible).toBe(false);
+
+      await finishReopening();
+      await VideosWrapper.videoLinkOpened(path);
+      await VideosWrapper.ready();
+      expect(VideosWrapper.engineVisible).toBe(true);
+      expect(VideosWrapper.navigationCount).toBe(2);
+      await VideosWrapper.settleAttachmentEffects();
+      expect(VideosWrapper.attachCount).toBe(2);
+      expect(VideosWrapper.hideCount).toBe(0);
+      expect(VideosWrapper.engineVisible).toBe(true);
+    },
+  );
+
+  it('waits for the latest attachment before opening a new link while the previous attachment is pending', async () => {
+    const finishFirstAttachment = VideosWrapper.deferStartup();
+    VideosWrapper.openVideoLink('/watch/dQw4w9WgXcQ');
+    VideosWrapper.mount();
+    await VideosWrapper.attachmentCount(1);
+
+    VideosWrapper.returnToMusicBeforeRouteChanges();
+    const finishLatestAttachment = VideosWrapper.deferStartup();
+    VideosWrapper.openVideoLink('/watch/aB_cD-01234');
+    await VideosWrapper.attachmentCount(2);
+    await finishFirstAttachment();
+    expect(VideosWrapper.navigationCount).toBe(0);
+
+    await finishLatestAttachment();
+    await VideosWrapper.videoLinkOpened('/watch/aB_cD-01234');
+    expect(VideosWrapper.navigationCount).toBe(1);
+    expect(VideosWrapper.engineVisible).toBe(true);
+    await VideosWrapper.settleAttachmentEffects();
+    expect(VideosWrapper.attachCount).toBe(2);
+    expect(VideosWrapper.hideCount).toBe(0);
+  });
+
   it('keeps music paused when a delayed music stream resolves while Videos is open', async () => {
     const view = VideosWrapper.mount();
     await VideosWrapper.ready();

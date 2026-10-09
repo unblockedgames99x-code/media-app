@@ -76,6 +76,9 @@ export const Videos: FC = () => {
   const { t } = useTranslation('videos');
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<VideoEngineState>('loading');
+  const [readyLinkSequence, setReadyLinkSequence] = useState<number | null>(
+    null,
+  );
   const [attempt, setAttempt] = useState(0);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const settingsOpen = useSettingsModalStore((store) => store.isOpen);
@@ -83,6 +86,7 @@ export const Videos: FC = () => {
     (store) => store.setupCompleted,
   );
   const pendingLink = useVideoLinkStore((store) => store.pending);
+  const videoLinkSequence = useVideoLinkStore((store) => store.sequence);
   const identity = usePersonalizationStore((store) => store.settings.identity);
   const background = usePersonalizationStore(
     (store) => store.settings.background,
@@ -118,6 +122,7 @@ export const Videos: FC = () => {
     if (
       state !== 'ready' ||
       !pendingLink ||
+      readyLinkSequence !== pendingLink.sequence ||
       settingsOpen ||
       overlayOpen ||
       !setupCompleted
@@ -140,7 +145,21 @@ export const Videos: FC = () => {
     return () => {
       disposed = true;
     };
-  }, [pendingLink, state, settingsOpen, overlayOpen, setupCompleted]);
+  }, [
+    pendingLink,
+    readyLinkSequence,
+    state,
+    settingsOpen,
+    overlayOpen,
+    setupCompleted,
+  ]);
+
+  useEffect(
+    () => () => {
+      void invoke('video_engine_hide').catch(() => {});
+    },
+    [],
+  );
 
   useEffect(() => {
     const pauseMusic = () => {
@@ -193,6 +212,7 @@ export const Videos: FC = () => {
   }, []);
 
   useEffect(() => {
+    setReadyLinkSequence(null);
     if (settingsOpen || overlayOpen || !setupCompleted) {
       void invoke('video_engine_hide').catch(() => {});
       return;
@@ -262,6 +282,7 @@ export const Videos: FC = () => {
           throw new Error('Video engine not ready');
         }
         lastBounds = boundsKey;
+        setReadyLinkSequence(videoLinkSequence);
         setState('ready');
         syncTheme();
       } catch {
@@ -308,9 +329,8 @@ export const Videos: FC = () => {
       resizeObserver.disconnect();
       themeObserver.disconnect();
       window.removeEventListener('resize', scheduleAttach);
-      void invoke('video_engine_hide').catch(() => {});
     };
-  }, [attempt, settingsOpen, overlayOpen, setupCompleted]);
+  }, [attempt, settingsOpen, overlayOpen, setupCompleted, videoLinkSequence]);
 
   return (
     <section

@@ -6,6 +6,8 @@ New profiles start with Spotify for music information and YouTube for streaming.
 
 The video home now matches the Music interface, with themed bordered cards and the centered heading **Goodtube - Noads No sponsors No distractions**. Sidebars and your custom header identity share polished hover outlines. Duplicate appearance settings and upstream promotional buttons are removed. Clicking a song row starts playback, and clicking Windows video inputs now focuses their page for typing.
 
+New video links restore the video window when a return to Music is still finishing, including repeated links to the same video.
+
 ## Choose a download
 
 | Your computer | File |

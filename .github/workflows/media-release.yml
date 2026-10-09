@@ -53,6 +53,8 @@ jobs:
           node-version: '24'
       - name: Check release version
         run: node _scripts/check-release-version.mjs
+      - name: Check packaged runtime verification
+        run: node --test _scripts/cdp.test.mjs
       - uses: pnpm/action-setup@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -147,5 +149,10 @@ jobs:
             gh release create "$RELEASE_REF_NAME" build/releases/* --verify-tag --title "Media $RELEASE_REF_NAME" --notes-file docs/RELEASE_NOTES.md
           else
             version=$(node -p "require('./packages/player/src-tauri/tauri.conf.json').version")
-            gh release create "v$version" build/releases/* --target "$GITHUB_SHA" --title "Media v$version" --notes-file docs/RELEASE_NOTES.md
+            if tag_commit=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$version" --jq '.object.sha'); then
+              test "$tag_commit" = "$GITHUB_SHA"
+            else
+              gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/v$version" -f "sha=$GITHUB_SHA"
+            fi
+            gh release create "v$version" build/releases/* --verify-tag --target "$GITHUB_SHA" --title "Media v$version" --notes-file docs/RELEASE_NOTES.md
           fi

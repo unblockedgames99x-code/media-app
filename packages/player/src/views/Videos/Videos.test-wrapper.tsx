@@ -26,12 +26,14 @@ const user = userEvent.setup();
 const nativeInvoke = vi.mocked(invoke);
 let bounds = { x: 200, y: 80, width: 800, height: 600 };
 let attachResult = () => Promise.resolve({ ready: true, pid: 42 });
+let engineVisible = false;
 
 export const VideosWrapper = {
   reset() {
     usePersonalizationStore.setState({ setupCompleted: true, hydrated: true });
     bounds = { x: 200, y: 80, width: 800, height: 600 };
     attachResult = () => Promise.resolve({ ready: true, pid: 42 });
+    engineVisible = false;
     useSoundStore.setState({ status: 'playing', seek: 27 });
     useSettingsModalStore.setState({ isOpen: false });
     useVideoLinkStore.setState({ pending: null, sequence: 0 });
@@ -42,7 +44,13 @@ export const VideosWrapper = {
     vi.mocked(listen).mockClear();
     nativeInvoke.mockImplementation((command) => {
       if (command === 'video_engine_attach') {
-        return attachResult() as ReturnType<typeof invoke>;
+        return attachResult().then((response) => {
+          engineVisible = response.ready;
+          return response;
+        }) as ReturnType<typeof invoke>;
+      }
+      if (command === 'video_engine_hide') {
+        engineVisible = false;
       }
       return Promise.resolve(undefined) as ReturnType<typeof invoke>;
     });
@@ -66,12 +74,38 @@ export const VideosWrapper = {
     ).length;
   },
 
+  async attachmentCount(count: number) {
+    await waitFor(() => expect(this.attachCount).toBe(count));
+  },
+
+  returnToMusicBeforeRouteChanges() {
+    engineVisible = false;
+  },
+
+  get engineVisible() {
+    return engineVisible;
+  },
+
+  get hideCount() {
+    return nativeInvoke.mock.calls.filter(
+      ([command]) => command === 'video_engine_hide',
+    ).length;
+  },
+
+  async settleAttachmentEffects() {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+  },
+
   deferStartup() {
     let resolve!: (value: { ready: boolean; pid: number }) => void;
-    attachResult = () =>
-      new Promise((resolvePromise) => {
+    attachResult = () => {
+      attachResult = () => Promise.resolve({ ready: true, pid: 42 });
+      return new Promise((resolvePromise) => {
         resolve = resolvePromise;
       });
+    };
     return () => act(async () => resolve({ ready: true, pid: 42 }));
   },
 

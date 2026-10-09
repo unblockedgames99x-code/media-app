@@ -124,6 +124,7 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             if let Some(link) = &video_link {
                 use tauri::Emitter;
+                video_engine::invalidate_pending_workspace_return(app);
                 let _ = app.emit("deep-link://new-url", vec![link]);
             }
             if video_link.is_none() {

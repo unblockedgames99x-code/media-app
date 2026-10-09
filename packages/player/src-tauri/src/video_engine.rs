@@ -1125,6 +1125,19 @@ pub fn restore_main_workspace(app: &AppHandle) {
 }
 
 #[cfg(any(target_os = "macos", test))]
+pub fn invalidate_pending_workspace_return(app: &AppHandle) {
+    let Some(state) = app.try_state::<VideoEngineState>() else {
+        return;
+    };
+    let Ok(mut slot) = state.inner().0.lock() else {
+        return;
+    };
+    if let Some(engine) = slot.as_mut().filter(|engine| !engine.visible) {
+        engine.revision += 1;
+    }
+}
+
+#[cfg(any(target_os = "macos", test))]
 pub fn focus_current_workspace(app: &AppHandle) {
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
@@ -1136,9 +1149,9 @@ pub fn focus_current_workspace(app: &AppHandle) {
             slot.as_ref()
                 .filter(|engine| engine.visible)
                 .and_then(|engine| {
-                    engine.port.map(|port| {
-                        (port, engine.token.clone(), engine.workspace_return_revision)
-                    })
+                    engine
+                        .port
+                        .map(|port| (port, engine.token.clone(), engine.workspace_return_revision))
                 })
         };
         if let Some((port, token, return_revision)) = connection {

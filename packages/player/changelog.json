@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-10-09T00:00",
+    "description": "Opening a new video link restores the video window even when a recent return to Music is still finishing. Repeated links keep the latest video request and do not leave the player hidden.",
+    "type": "fix",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "Desktop", "color": "orange" }]
+  },
+  {
+    "date": "2026-10-09T00:00",
     "description": "Video artwork honors the selected rounded, square, or circular shape. Home cards, the video header, and navigation hover shadows follow your chosen shadow size, including turning shadows off.",
     "type": "fix",
     "contributors": ["Media contributors"],
