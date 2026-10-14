@@ -386,3 +386,11 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
 export const initializeQueueStore = async (): Promise<void> => {
   await useQueueStore.getState().loadFromDisk();
 };
+
+useQueueStore.subscribe((state, previousState) => {
+  const currentId = state.items[state.currentIndex]?.id;
+  const previousId = previousState.items[previousState.currentIndex]?.id;
+  if (currentId !== previousId) {
+    useSoundStore.getState().clearSectionRepeat();
+  }
+});

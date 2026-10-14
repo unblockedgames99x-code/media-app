@@ -17,10 +17,12 @@ export type HifiLogger = {
 };
 
 export type SoundStatus = 'playing' | 'paused' | 'stopped';
+export type SectionRepeatRange = { start: number; end: number };
 export type SoundProps = {
   src: AudioSource;
   status: SoundStatus;
   seek?: number;
+  sectionRepeat?: SectionRepeatRange;
   volume?: number;
   processing?: AudioProcessingSettings;
   preload?: HTMLAudioElement['preload'];

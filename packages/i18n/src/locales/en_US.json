@@ -612,7 +612,23 @@
     "repeatAll": "Repeat: all",
     "repeatOne": "Repeat: one",
     "discoveryOn": "Discovery: on",
-    "discoveryOff": "Discovery: off"
+    "discoveryOff": "Discovery: off",
+    "sectionRepeat": {
+      "title": "Repeat section (A–B)",
+      "shortLabel": "A–B",
+      "start": "Start (A)",
+      "end": "End (B)",
+      "markStart": "Set start to current position",
+      "markEnd": "Set end to current position",
+      "hint": "Enter times or mark the current position. The song loops from A to B.",
+      "chooseRange": "Choose a start and end",
+      "looping": "Looping {{start}} – {{end}}",
+      "loop": "Loop section",
+      "clear": "Clear section",
+      "unavailable": "Play a song to repeat a section",
+      "invalidTime": "Enter a time as seconds, m:ss, or h:mm:ss. Decimals are supported.",
+      "invalidRange": "The end must be at least 0.25 seconds after the start and within the song."
+    }
   },
   "lyrics": {
     "nothingPlaying": "Nothing is playing",

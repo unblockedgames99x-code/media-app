@@ -1,6 +1,6 @@
 {
   "name": "@nuclearplayer/player",
-  "version": "1.50.1",
+  "version": "1.50.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,6 +17,7 @@
     "clean": "rm -rf dist build .turbo node_modules/.vite"
   },
   "dependencies": {
+    "@headlessui/react": "2.2.10",
     "@nuclearplayer/eslint-config": "workspace:*",
     "@nuclearplayer/hifi": "workspace:*",
     "@nuclearplayer/i18n": "workspace:*",

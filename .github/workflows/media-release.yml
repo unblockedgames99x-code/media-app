@@ -112,6 +112,17 @@ jobs:
       - name: Open packaged Linux application and check renderer sandbox
         if: runner.os == 'Linux'
         run: dbus-run-session -- xvfb-run -a node _scripts/smoke-portable.mjs --arch ${{ matrix.arch }} --target ${{ matrix.target }}
+      - name: Check packaged music section repeat with real audio
+        if: runner.os == 'Windows'
+        timeout-minutes: 4
+        run: node _scripts/smoke-section-repeat.mjs --arch ${{ matrix.arch }}
+      - name: Save section repeat verification report
+        if: always() && runner.os == 'Windows'
+        uses: actions/upload-artifact@v7
+        with:
+          name: Music-section-repeat-${{ matrix.platform }}-${{ matrix.arch }}
+          path: build/verify/${{ matrix.platform }}-${{ matrix.arch }}/section-repeat/section-repeat.*
+          if-no-files-found: ignore
       - name: Save runtime verification report
         if: always()
         uses: actions/upload-artifact@v7

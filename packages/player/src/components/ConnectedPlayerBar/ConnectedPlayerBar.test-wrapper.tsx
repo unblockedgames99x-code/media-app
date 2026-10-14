@@ -1,6 +1,12 @@
 import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, createRouter } from '@tanstack/react-router';
-import { render, RenderResult, screen, within } from '@testing-library/react';
+import {
+  act,
+  render,
+  RenderResult,
+  screen,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { QueueItem, Track } from '@nuclearplayer/model';
@@ -130,6 +136,63 @@ export const ConnectedPlayerBarWrapper = {
 
   get playbackPosition() {
     return useSoundStore.getState().seek;
+  },
+
+  seedSectionPlayback(seconds: number, duration = 180) {
+    act(() => {
+      useSoundStore.setState({
+        src: { url: 'https://example.com/section-repeat.mp3', protocol: 'https' },
+        status: 'paused',
+        seek: seconds,
+        duration,
+      });
+    });
+  },
+
+  sectionRepeat: {
+    get button() {
+      return screen.getByRole('button', { name: 'Repeat section (A–B)' });
+    },
+    async open() {
+      await user.click(this.button);
+    },
+    async close() {
+      await user.keyboard('{Escape}');
+    },
+    get startInput() {
+      return screen.getByRole('textbox', { name: 'Start (A)' });
+    },
+    get endInput() {
+      return screen.getByRole('textbox', { name: 'End (B)' });
+    },
+    async enterRange(start: string, end: string) {
+      await user.clear(this.startInput);
+      await user.type(this.startInput, start);
+      await user.clear(this.endInput);
+      await user.type(this.endInput, end);
+    },
+    async markStart() {
+      await user.click(
+        screen.getByRole('button', { name: 'Set start to current position' }),
+      );
+    },
+    async markEnd() {
+      await user.click(
+        screen.getByRole('button', { name: 'Set end to current position' }),
+      );
+    },
+    async loop() {
+      await user.click(screen.getByRole('button', { name: 'Loop section' }));
+    },
+    async clear() {
+      await user.click(screen.getByRole('button', { name: 'Clear section' }));
+    },
+    get status() {
+      return screen.getByTestId('section-repeat-status');
+    },
+    get error() {
+      return screen.getByRole('alert');
+    },
   },
 
   seedVolume(volume01: number) {

@@ -10,6 +10,7 @@ import { useProviders } from '../../hooks/useProviders';
 import { playbackManager } from '../../services/playback';
 import { useQueueStore } from '../../stores/queueStore';
 import { useSoundStore } from '../../stores/soundStore';
+import { ConnectedSectionRepeat } from './ConnectedSectionRepeat';
 
 export const ConnectedControls: FC = () => {
   const { t } = useTranslation('playerBar');
@@ -45,29 +46,32 @@ export const ConnectedControls: FC = () => {
   };
 
   return (
-    <PlayerBar.Controls
-      isPlaying={status === 'playing'}
-      isShuffleActive={Boolean(shuffleEnabled)}
-      repeatMode={repeatMode ?? 'off'}
-      onPlayPause={playbackManager.toggle}
-      onNext={goToNext}
-      onPrevious={goToPrevious}
-      onShuffleToggle={handleToggleShuffle}
-      onRepeatToggle={handleToggleRepeat}
-      isDiscoveryActive={hasDiscoveryProviders && Boolean(discoveryEnabled)}
-      onDiscoveryToggle={
-        hasDiscoveryProviders ? handleToggleDiscovery : undefined
-      }
-      showDiscovery={hasDiscoveryProviders}
-      labels={{
-        shuffleOn: t('shuffleOn'),
-        shuffleOff: t('shuffleOff'),
-        repeatOff: t('repeatOff'),
-        repeatAll: t('repeatAll'),
-        repeatOne: t('repeatOne'),
-        discoveryOn: t('discoveryOn'),
-        discoveryOff: t('discoveryOff'),
-      }}
-    />
+    <div className="flex items-center justify-center gap-2">
+      <PlayerBar.Controls
+        isPlaying={status === 'playing'}
+        isShuffleActive={Boolean(shuffleEnabled)}
+        repeatMode={repeatMode ?? 'off'}
+        onPlayPause={playbackManager.toggle}
+        onNext={goToNext}
+        onPrevious={goToPrevious}
+        onShuffleToggle={handleToggleShuffle}
+        onRepeatToggle={handleToggleRepeat}
+        isDiscoveryActive={hasDiscoveryProviders && Boolean(discoveryEnabled)}
+        onDiscoveryToggle={
+          hasDiscoveryProviders ? handleToggleDiscovery : undefined
+        }
+        showDiscovery={hasDiscoveryProviders}
+        labels={{
+          shuffleOn: t('shuffleOn'),
+          shuffleOff: t('shuffleOff'),
+          repeatOff: t('repeatOff'),
+          repeatAll: t('repeatAll'),
+          repeatOne: t('repeatOne'),
+          discoveryOn: t('discoveryOn'),
+          discoveryOff: t('discoveryOff'),
+        }}
+      />
+      <ConnectedSectionRepeat />
+    </div>
   );
 };

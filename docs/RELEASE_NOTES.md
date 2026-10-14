@@ -1,4 +1,4 @@
-This update fixes native Windows keyboard focus in the video search and other video inputs, and corrects the home heading to **Goodtube - No ads No sponsors No distractions**.
+This update adds **A–B section repeat** to the music player. Click **A–B** beside the repeat controls, mark the current position or enter exact start and end times, and choose **Loop section**. Use **Clear section** to return to normal playback. Pausing keeps your chosen section, and changing songs clears it. Existing song and queue repeat controls remain available.
 
 A personal music and video workspace with a neutral interface and a first-launch setup.
 

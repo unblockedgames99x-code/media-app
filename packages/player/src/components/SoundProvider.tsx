@@ -23,7 +23,7 @@ const describePlaybackError = (error: Error, t: TFunction): string => {
 
 export const SoundProvider: FC<PropsWithChildren> = ({ children }) => {
   const { t } = useTranslation('streaming');
-  const { src, status, seek } = useSoundStore();
+  const { src, status, seek, sectionRepeat } = useSoundStore();
   const processing = usePersonalizationStore((state) => state.settings.audio);
   const [crossfadeMs] = useCoreSetting<number>('playback.crossfadeMs');
   const preload: HTMLAudioElement['preload'] = 'auto';
@@ -91,6 +91,11 @@ export const SoundProvider: FC<PropsWithChildren> = ({ children }) => {
           src={src}
           status={status}
           seek={seek}
+          sectionRepeat={
+            sectionRepeat.start !== null && sectionRepeat.end !== null
+              ? { start: sectionRepeat.start, end: sectionRepeat.end }
+              : undefined
+          }
           volume={volumePercent}
           processing={processing}
           preload={preload}

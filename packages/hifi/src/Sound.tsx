@@ -10,6 +10,7 @@ import { useAudioSeek } from './hooks/useAudioSeek';
 import { useHlsSource } from './hooks/useHlsSource';
 import { useMseSource } from './hooks/useMseSource';
 import { usePlaybackStatus } from './hooks/usePlaybackStatus';
+import { useSectionRepeat } from './hooks/useSectionRepeat';
 import { useStartPosition } from './hooks/useStartPosition';
 import { SoundProps } from './types';
 
@@ -17,6 +18,7 @@ export const Sound: React.FC<SoundProps> = ({
   src,
   status,
   seek,
+  sectionRepeat,
   volume,
   processing,
   preload = 'auto',
@@ -66,6 +68,14 @@ export const Sound: React.FC<SoundProps> = ({
   useHlsSource(audioRef, src);
   useMseSource(audioRef, src, onError, onSourceInvalid);
   usePlaybackStatus(audioRef, status, src.url, onError);
+  const handleEnd = useSectionRepeat(audioRef, {
+    sourceUrl: src.url,
+    status,
+    sectionRepeat,
+    onTimeUpdate,
+    onEnd,
+    onError,
+  });
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -76,9 +86,17 @@ export const Sound: React.FC<SoundProps> = ({
     audio.volume = Math.max(0, Math.min(1, volume / 100));
   }, [volume]);
 
+  const handleMetadata = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      onTimeUpdate?.({ position: audio.currentTime, duration: audio.duration });
+    }
+  }, [onTimeUpdate]);
+
   const handleCanPlay = useCallback(() => {
+    handleMetadata();
     onCanPlay?.();
-  }, [onCanPlay]);
+  }, [onCanPlay, handleMetadata]);
 
   const handleLoadStart = useCallback(() => {
     onLoadStart?.();
@@ -92,12 +110,15 @@ export const Sound: React.FC<SoundProps> = ({
   return (
     <audio
       ref={audioRef}
+      data-testid="music-audio"
       hidden
       preload={preload}
       crossOrigin={crossOrigin}
       onTimeUpdate={handleTimeUpdate}
-      onEnded={onEnd}
+      onEnded={handleEnd}
       onLoadStart={handleLoadStart}
+      onLoadedMetadata={handleMetadata}
+      onDurationChange={handleMetadata}
       onCanPlay={handleCanPlay}
       onError={handleError}
     />

@@ -71,6 +71,8 @@ The Music / Videos switch stays available in both sections. Windows shows both e
 
 Music keeps the plugin marketplace, sources, search, playlists and imports, queue, favorites, lyrics providers, history and statistics, keyboard shortcuts, remote control, MCP, MPD, and its existing preferences. Optional features still need their corresponding plugins.
 
+To repeat part of a song, click **A–B** beside the music repeat controls. Enter the **Start (A)** and **End (B)** times, or use the position buttons to mark them as you listen. Choose **Loop section** to repeat that part, and **Clear section** to play normally again. Pausing preserves the section; changing songs clears it.
+
 Click a track row to play it, including its artwork, artist, title, or duration. You can also focus a row and press **Enter** or **Space**. Favorite buttons, menus, and playlist reordering keep their own actions.
 
 Fresh setup automatically installs **Spotify** for music search and metadata and **YouTube** for playback. After setup, search for an artist or track, open **Tracks**, and choose a track or **Play all**. If your connection is unavailable, the app stays open and shows **Retry** for the unfinished source setup. Existing source choices stay saved, and disabling or removing a default plugin does not reinstall it on the next launch.

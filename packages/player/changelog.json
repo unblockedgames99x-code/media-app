@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-10-14T00:00",
+    "description": "Repeat any section of a song with the new A–B button beside the music repeat controls. Mark the current position or enter exact start and end times, loop that section, and clear it to resume normal playback. Section repeat resets when changing songs.",
+    "type": "feature",
+    "contributors": ["Media contributors"],
+    "tags": [{ "label": "Music", "color": "purple" }]
+  },
+  {
     "date": "2026-10-09T00:00",
     "description": "Windows video inputs now receive native keyboard focus when clicked, including search, text editing, and keyboard shortcuts. The home heading now reads Goodtube - No ads No sponsors No distractions.",
     "type": "fix",
